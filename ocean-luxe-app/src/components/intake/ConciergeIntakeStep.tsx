@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import Field from "@/components/intake/Field";
 import { inputCx } from "@/components/intake/constants";
+import Select from "@/components/ui/Select";
 import type { ConciergeIntake } from "@/hooks/useIntakeStore";
 
 function required(value: string) {
@@ -77,16 +78,16 @@ export default function ConciergeIntakeStep({
         />
       </Field>
       <Field label="Preferred contact channel">
-        <select
+        <Select
           value={intake.contactPreference}
-          onChange={(e) => onPatch({ contactPreference: e.target.value as any })}
-          className={inputCx}
-        >
-          <option value="discord">Discord</option>
-          <option value="sms">SMS</option>
-          <option value="email">Email</option>
-          <option value="whatsapp">WhatsApp</option>
-        </select>
+          onChange={(value) => onPatch({ contactPreference: value as any })}
+          options={[
+            { value: "discord", label: "Discord" },
+            { value: "sms", label: "SMS" },
+            { value: "email", label: "Email" },
+            { value: "whatsapp", label: "WhatsApp" },
+          ]}
+        />
       </Field>
 
       <div className="md:col-span-2 mt-2 grid gap-3">
@@ -130,4 +131,3 @@ export default function ConciergeIntakeStep({
     </form>
   );
 }
-

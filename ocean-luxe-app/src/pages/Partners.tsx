@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Field from "@/components/intake/Field";
 import { inputCx } from "@/components/intake/constants";
+import Select from "@/components/ui/Select";
 
 export default function Partners() {
   const [submitted, setSubmitted] = useState(false);
@@ -78,19 +79,19 @@ export default function Partners() {
                   </Field>
                 </div>
                 <Field label="Category">
-                  <select
+                  <Select
                     value={form.category}
-                    onChange={(e) => setForm((s) => ({ ...s, category: e.target.value }))}
-                    className={inputCx}
-                  >
-                    <option value="transport">Transportation</option>
-                    <option value="photography">Photography</option>
-                    <option value="dining">Dining / reservations</option>
-                    <option value="events">Celebrations / events</option>
-                    <option value="yacht">Day-charter / water experiences</option>
-                    <option value="villa">Villa / property manager</option>
-                    <option value="other">Other</option>
-                  </select>
+                    onChange={(value) => setForm((s) => ({ ...s, category: value }))}
+                    options={[
+                      { value: "transport", label: "Transportation" },
+                      { value: "photography", label: "Photography" },
+                      { value: "dining", label: "Dining / reservations" },
+                      { value: "events", label: "Celebrations / events" },
+                      { value: "yacht", label: "Day-charter / water experiences" },
+                      { value: "villa", label: "Villa / property manager" },
+                      { value: "other", label: "Other" },
+                    ]}
+                  />
                 </Field>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field label="Email">
@@ -132,4 +133,3 @@ export default function Partners() {
     </div>
   );
 }
-

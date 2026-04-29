@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Field from "@/components/intake/Field";
 import { inputCx } from "@/components/intake/constants";
+import Select from "@/components/ui/Select";
 
 export default function Westgate() {
   const [submitted, setSubmitted] = useState(false);
@@ -84,15 +85,15 @@ export default function Westgate() {
                   />
                 </Field>
                 <Field label="Will all decision-makers attend if required?">
-                  <select
+                  <Select
                     value={form.decisionMakers}
-                    onChange={(e) => setForm((s) => ({ ...s, decisionMakers: e.target.value }))}
-                    className={inputCx}
-                  >
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                    <option value="unsure">Unsure</option>
-                  </select>
+                    onChange={(value) => setForm((s) => ({ ...s, decisionMakers: value }))}
+                    options={[
+                      { value: "yes", label: "Yes" },
+                      { value: "no", label: "No" },
+                      { value: "unsure", label: "Unsure" },
+                    ]}
+                  />
                 </Field>
                 <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
                   <input
@@ -118,4 +119,3 @@ export default function Westgate() {
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import { Check, ChevronRight } from "lucide-react";
 import Field from "@/components/intake/Field";
 import { inputCx, priorityOptions } from "@/components/intake/constants";
+import Select from "@/components/ui/Select";
 import type { Lane, TripSnapshot } from "@/hooks/useIntakeStore";
 
 function laneLabel(lane: Lane) {
@@ -142,13 +143,17 @@ export default function TripSnapshotStep({
       </div>
 
       <Field label="Budget band (optional)" className="md:col-span-1">
-        <select value={snapshot.budgetBand} onChange={(e) => onPatch({ budgetBand: e.target.value })} className={inputCx}>
-          <option value="">Select</option>
-          <option value="$2k–$5k">$2k–$5k</option>
-          <option value="$5k–$10k">$5k–$10k</option>
-          <option value="$10k–$25k">$10k–$25k</option>
-          <option value="$25k+">$25k+</option>
-        </select>
+        <Select
+          value={snapshot.budgetBand}
+          onChange={(value) => onPatch({ budgetBand: value })}
+          placeholder="Select"
+          options={[
+            { value: "$2k–$5k", label: "$2k–$5k" },
+            { value: "$5k–$10k", label: "$5k–$10k" },
+            { value: "$10k–$25k", label: "$10k–$25k" },
+            { value: "$25k+", label: "$25k+" },
+          ]}
+        />
       </Field>
       <Field label="What would make this trip feel effortless?" className="md:col-span-1">
         <input
@@ -170,4 +175,3 @@ export default function TripSnapshotStep({
     </form>
   );
 }
-
