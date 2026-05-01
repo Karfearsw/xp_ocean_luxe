@@ -1,96 +1,58 @@
+import { Link } from "react-router-dom";
+import { trustHighlights } from "@/content/trust-copy";
+
 export default function Home() {
   return (
-    <div className="mx-auto max-w-6xl px-5 py-14 md:py-20">
-      <div className="grid gap-12 md:grid-cols-12 md:items-end">
-        <div className="md:col-span-7">
-          <div className="text-xs tracking-[0.28em] text-white/55">ORLANDO • CONCIERGE OPERATING SYSTEM</div>
-          <h1 className="mt-5 font-[var(--font-display)] text-4xl leading-[1.02] tracking-[-0.02em] text-[#F7F2E6] md:text-6xl">
-            Effortless Orlando.
-            <span className="block text-white/75">Estate-level planning, transport, and execution.</span>
+    <div className="space-y-16">
+      <section className="grid gap-8 overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(103,232,249,0.22),_transparent_38%),linear-gradient(135deg,_rgba(15,23,42,1),_rgba(2,6,23,0.92))] p-8 shadow-2xl shadow-cyan-950/20 md:grid-cols-[1.2fr_0.8fr] md:p-12">
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <img
+              src="/xp-ocean-logo.png"
+              alt="XP Ocean Luxe"
+              className="h-20 w-20 rounded-full border border-amber-300/20 bg-black/40 object-cover p-1 shadow-lg shadow-amber-500/10"
+            />
+            <p className="text-sm uppercase tracking-[0.4em] text-amber-200">Hosted by XP Ocean Luxe</p>
+          </div>
+          <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
+            Secure premium resort inventory with transparent pricing and concierge-level support.
           </h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-white/65">
-            Ocean Luxe Estate runs your trip like an operating system: itinerary engineering, reservation strategy,
-            luxury transportation coordination, and concierge support before and during your stay.
+          <p className="max-w-2xl text-lg text-slate-300">
+            Browse curated stays, view availability, and reserve with confidence. Every booking is verified, every payment is protected, and every stay is managed with Ocean Luxe care.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="/book"
-              className="inline-flex items-center justify-center rounded-full bg-[#D6B25A] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
-            >
-              Start Trip Snapshot
-            </a>
-            <a
-              href="/packages"
-              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 transition hover:bg-white/10"
-            >
-              View Packages
-            </a>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/resorts" className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200">
+              Book your stay
+            </Link>
+            <Link to="/policies" className="rounded-full border border-white/15 px-6 py-3 font-medium text-white transition hover:bg-white/8">
+              Transparent pricing
+            </Link>
           </div>
         </div>
-
-        <div className="md:col-span-5">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
-            <div className="text-xs tracking-[0.24em] text-white/50">THE PROMISE</div>
-            <div className="mt-4 grid gap-4">
-              <div className="rounded-2xl border border-white/10 bg-[#07080A]/40 p-4">
-                <div className="text-sm font-medium text-white/90">Time back</div>
-                <div className="mt-1 text-sm text-white/60">Avoid wasted vacation days with routing, timing, and pivots.</div>
+        <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+          <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Why guests convert</p>
+          <div className="mt-6 space-y-4">
+            {trustHighlights.map((highlight) => (
+              <div key={highlight} className="rounded-2xl border border-white/10 bg-slate-950/30 p-4 text-slate-200">
+                {highlight}
               </div>
-              <div className="rounded-2xl border border-white/10 bg-[#07080A]/40 p-4">
-                <div className="text-sm font-medium text-white/90">Confidence</div>
-                <div className="mt-1 text-sm text-white/60">
-                  One point of contact for reservations, vendors, and transportation coordination.
-                </div>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-[#07080A]/40 p-4">
-                <div className="text-sm font-medium text-white/90">Discretion</div>
-                <div className="mt-1 text-sm text-white/60">
-                  Premium service standards, invitation-only opportunities, and clean execution.
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 text-xs leading-relaxed text-white/40">
-            Preview scaffold: branding + funnel structure. Payments/CRM integrations are phase 2.
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="mt-14 grid gap-6 md:grid-cols-3">
-        <a
-          href="/packages"
-          className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/10"
-        >
-          <div className="text-xs tracking-[0.24em] text-white/50">FAMILIES</div>
-          <div className="mt-3 font-[var(--font-display)] text-2xl text-white/90">Theme park + logistics mastery</div>
-          <div className="mt-2 text-sm text-white/60">
-            Trip design, dining strategy, airport transfers, large-family coordination, and in-trip support.
-          </div>
-          <div className="mt-5 text-sm text-[#D6B25A] transition group-hover:translate-x-0.5">View family packages →</div>
-        </a>
-        <a
-          href="/packages"
-          className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/10"
-        >
-          <div className="text-xs tracking-[0.24em] text-white/50">COUPLES</div>
-          <div className="mt-3 font-[var(--font-display)] text-2xl text-white/90">Romance + nightlife precision</div>
-          <div className="mt-2 text-sm text-white/60">
-            Dining, events, photographers, celebration production, luxury transport and discreet hosting.
-          </div>
-          <div className="mt-5 text-sm text-[#D6B25A] transition group-hover:translate-x-0.5">View VIP leisure →</div>
-        </a>
-        <a
-          href="/packages"
-          className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/10"
-        >
-          <div className="text-xs tracking-[0.24em] text-white/50">CORPORATE</div>
-          <div className="mt-3 font-[var(--font-display)] text-2xl text-white/90">Convention-ready execution</div>
-          <div className="mt-2 text-sm text-white/60">
-            Airport transfers, executive logistics, group manifests, SLAs, and recurring accounts.
-          </div>
-          <div className="mt-5 text-sm text-[#D6B25A] transition group-hover:translate-x-0.5">View corporate lane →</div>
-        </a>
-      </div>
+      <section className="grid gap-6 md:grid-cols-3">
+        {[
+          { title: "View availability", body: "Destination-led inventory pages surface active packages and verified dates without exposing protected admin data." },
+          { title: "Reserve now", body: "Guest checkout keeps the path simple while Stripe-backed payments confirm the booking after webhook verification." },
+          { title: "Secure your dates", body: "Every package displays whether you pay in full or by deposit before the final review step." },
+        ].map((item) => (
+          <article key={item.title} className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+            <h2 className="text-xl font-semibold">{item.title}</h2>
+            <p className="mt-3 text-slate-300">{item.body}</p>
+          </article>
+        ))}
+      </section>
     </div>
   );
 }

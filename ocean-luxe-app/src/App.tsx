@@ -1,24 +1,24 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "@/pages/Home";
-import Packages from "@/pages/Packages";
-import Book from "@/pages/Book";
-import Westgate from "@/pages/Westgate";
-import Partners from "@/pages/Partners";
+import { Navigate, Route, Routes } from "react-router-dom";
 import SiteLayout from "@/components/SiteLayout";
+import Home from "@/pages/Home";
+import ResortsPage from "@/pages/ResortsPage";
+import ResortDetailPage from "@/pages/ResortDetailPage";
+import BookingFlowPage from "@/pages/BookingFlowPage";
+import BookingConfirmationPage from "@/pages/BookingConfirmationPage";
+import PoliciesPage from "@/pages/PoliciesPage";
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route element={<SiteLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/packages" element={<Packages />} />
-          <Route path="/book" element={<Book />} />
-          <Route path="/westgate" element={<Westgate />} />
-          <Route path="/partners" element={<Partners />} />
-          <Route path="*" element={<div className="mx-auto max-w-6xl px-5 py-20">Not found.</div>} />
-        </Route>
-      </Routes>
-    </Router>
+    <Routes>
+      <Route element={<SiteLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/resorts" element={<ResortsPage />} />
+        <Route path="/resorts/:slug" element={<ResortDetailPage />} />
+        <Route path="/book/:resortSlug/:packageId" element={<BookingFlowPage />} />
+        <Route path="/booking/confirmed/:bookingReference" element={<BookingConfirmationPage />} />
+        <Route path="/policies" element={<PoliciesPage />} />
+        <Route path="*" element={<Navigate to="/resorts" replace />} />
+      </Route>
+    </Routes>
   );
 }

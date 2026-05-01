@@ -5,20 +5,56 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: dark;
   --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans", Helvetica, Arial,
-    sans-serif;
-
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: #07080a;
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top, rgba(103, 232, 249, 0.12), transparent 30%),
+    linear-gradient(180deg, #07111f, #020617 68%);
+  color: #f8fafc;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
