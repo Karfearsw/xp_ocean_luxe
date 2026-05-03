@@ -1,57 +1,72 @@
-# React + TypeScript + Vite
+# XP Ocean Luxe Booking App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Public-facing booking application for XP Ocean Luxe, built with Vite, React, TypeScript, Tailwind CSS, Vercel serverless functions, shared domain contracts, and a Supabase-backed booking workflow.
 
-Currently, two official plugins are available:
+## What This Repo Contains
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Public booking storefront under `src/`
+- Serverless booking and payment APIs under `api/`
+- Shared request/response validation contracts in `../shared/contracts`
+- Supabase schema and migration scaffolding in `../supabase`
+- Deployment and release notes in `../ocean-luxe-estate`
 
-## Expanding the ESLint configuration
+## Core Flows
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Browse public resort inventory
+- View package pricing and booking terms
+- Create booking drafts
+- Create Stripe payment intents
+- Confirm bookings via webhook processing
+- Queue CRM sync jobs and Discord verification notifications
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Local Development
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run the dev server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm run dev
 ```
+
+Run validation:
+
+```bash
+npm run build
+npm run lint
+npm run check
+```
+
+## Required Environment Variables
+
+Create a local `.env` file based on `.env.example` and provide values for:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+- `CRM_API_BASE_URL`
+- `CRM_API_TOKEN`
+- `DISCORD_WEBHOOK_URL`
+
+## Deployment Notes
+
+- Vercel root directory: `ocean-luxe-app`
+- Framework preset: `Vite`
+- Build command: `npm run build`
+- Output directory: `dist`
+- SPA rewrites must not intercept `/api/*`
+- Stripe webhook target: `/api/stripe/webhook`
+- Cron target: `/api/cron/process-crm-sync`
+
+## Release Status
+
+- Current application version: `0.1.0`
+- Current release notes live in `../ocean-luxe-estate/release-notes.md`

@@ -80,7 +80,7 @@ export default function ConciergeIntakeStep({
       <Field label="Preferred contact channel">
         <Select
           value={intake.contactPreference}
-          onChange={(value) => onPatch({ contactPreference: value as any })}
+          onChange={(value) => onPatch({ contactPreference: value as ConciergeIntake["contactPreference"] })}
           options={[
             { value: "discord", label: "Discord" },
             { value: "sms", label: "SMS" },

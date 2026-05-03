@@ -1,5 +1,21 @@
 import { getSupabaseAdmin } from "./supabase-admin";
 
+type BookingSyncRecord = {
+  id: string;
+  guest_name: string;
+  guest_email: string;
+  guest_phone: string | null;
+  resort_id: string;
+  package_id: string;
+  booking_status: string;
+  payment_status: string;
+  stripe_payment_intent_id: string | null;
+  check_in_date: string;
+  check_out_date: string;
+  customer_price: number;
+  margin: number;
+};
+
 async function sendDiscordWebhook(payload: Record<string, unknown>) {
   if (!process.env.DISCORD_WEBHOOK_URL) return { ok: true, skipped: true };
   const response = await fetch(process.env.DISCORD_WEBHOOK_URL, {
@@ -40,7 +56,7 @@ async function sendCrmRest(payload: Record<string, unknown>) {
   return response.json().catch(() => ({ ok: true }));
 }
 
-export function buildCrmPayload(booking: Record<string, any>) {
+export function buildCrmPayload(booking: BookingSyncRecord) {
   return {
     bookingId: booking.id,
     guestName: booking.guest_name,

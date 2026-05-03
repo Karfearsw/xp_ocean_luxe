@@ -1,9 +1,22 @@
 import { bookingConfirmationEmail } from "../_lib/email-templates/booking-confirmation";
 import { paymentFailedEmail } from "../_lib/email-templates/payment-failed";
 import { buildCrmPayload } from "../_lib/crm-sync";
+import type { ApiRequest, ApiResponse } from "../_lib/http";
 import { getResend } from "../_lib/resend";
 import { getStripe } from "../_lib/stripe";
 import { getSupabaseAdmin } from "../_lib/supabase-admin";
+
+function getRawBody(body: unknown) {
+  if (typeof body === "string" || body instanceof Buffer) {
+    return body;
+  }
+
+  if (body && typeof body === "object") {
+    return JSON.stringify(body);
+  }
+
+  return "";
+}
 
 async function sendEmail(to: string, content: { subject: string; html: string }) {
   const resend = getResend();
@@ -17,7 +30,7 @@ async function sendEmail(to: string, content: { subject: string; html: string })
   });
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method not allowed" });
     return;
@@ -30,7 +43,9 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const signature = req.headers["stripe-signature"];
+  const signature = Array.isArray(req.headers["stripe-signature"])
+    ? req.headers["stripe-signature"][0]
+    : req.headers["stripe-signature"];
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
     res.status(400).json({ message: "Missing webhook signature configuration" });
     return;
@@ -38,7 +53,7 @@ export default async function handler(req: any, res: any) {
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(getRawBody(req.body), signature, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : "Invalid webhook" });
     return;

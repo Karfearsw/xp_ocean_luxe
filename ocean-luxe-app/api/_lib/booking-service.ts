@@ -1,13 +1,13 @@
-import type { BookingDraft } from "../../src/types";
 import { bookingDraftSchema } from "../../../shared/contracts/bookings";
+import type { ApiResponse } from "./http";
 import { getSupabaseAdmin } from "./supabase-admin";
 import { fallbackPackages, fallbackResorts } from "./sample-data";
 
-function jsonResponse(res: any, status: number, payload: unknown) {
+function jsonResponse(res: ApiResponse, status: number, payload: unknown) {
   res.status(status).setHeader("Content-Type", "application/json").send(JSON.stringify(payload));
 }
 
-export async function createBookingDraftRecord(res: any, body: BookingDraft) {
+export async function createBookingDraftRecord(res: ApiResponse, body: unknown) {
   const parsed = bookingDraftSchema.safeParse(body);
   if ("error" in parsed) {
     return jsonResponse(res, 400, { message: parsed.error.flatten() });

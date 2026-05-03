@@ -1,14 +1,18 @@
+import type { ApiRequest, ApiResponse } from "../_lib/http";
 import { getStripe } from "../_lib/stripe";
 import { getSupabaseAdmin } from "../_lib/supabase-admin";
 import { fallbackPackages } from "../_lib/sample-data";
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method not allowed" });
     return;
   }
 
-  const bookingId = req.body?.bookingId;
+  const bookingId =
+    req.body && typeof req.body === "object" && "bookingId" in req.body && typeof req.body.bookingId === "string"
+      ? req.body.bookingId
+      : undefined;
   if (!bookingId) {
     res.status(400).json({ message: "Missing booking ID" });
     return;
