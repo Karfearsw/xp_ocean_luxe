@@ -1,7 +1,7 @@
 import type { ApiRequest, ApiResponse } from "../_lib/http";
 import { getStripe } from "../_lib/stripe";
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
 import { fallbackPackages } from "../_lib/sample-data";
+import { getDbAdapter } from "../_lib/db-adapter";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "POST") {
@@ -18,8 +18,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  const db = getDbAdapter();
+  if (!db) {
     const samplePackage = fallbackPackages[0];
     res.status(200).json({
       clientSecret: `test_secret_${bookingId}`,
@@ -29,14 +29,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
-  const { data: booking, error: bookingError } = await supabase.from("bookings").select("*").eq("id", bookingId).single();
-  if (bookingError || !booking) {
+  const booking = await db.getBookingById(bookingId);
+  if (!booking) {
     res.status(404).json({ message: "Booking not found" });
     return;
   }
 
-  const { data: packageDetails, error: packageError } = await supabase.from("packages").select("payment_mode, deposit_amount, public_price").eq("id", booking.package_id).single();
-  if (packageError || !packageDetails) {
+  const packageDetails = await db.getPackagePricing(booking.package_id);
+  if (!packageDetails) {
     res.status(404).json({ message: "Package pricing not found" });
     return;
   }
@@ -63,7 +63,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     receipt_email: booking.guest_email,
   });
 
-  await supabase.from("bookings").update({ stripe_payment_intent_id: intent.id }).eq("id", booking.id);
+  await db.markBooking(booking.id, { stripe_payment_intent_id: intent.id });
 
   res.status(200).json({ clientSecret: intent.client_secret, amount, paymentMode: packageDetails.payment_mode });
 }

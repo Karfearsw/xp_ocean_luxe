@@ -11,6 +11,8 @@ const initialForm = {
   guest_name: "",
   guest_email: "",
   guest_phone: "",
+  guest_dob: "",
+  compliance_acknowledged: false,
   check_in_date: "",
   check_out_date: "",
 };
@@ -56,6 +58,11 @@ export default function BookingFlowPage() {
   const amountDueNow = selectedPackage?.payment_mode === "deposit"
     ? selectedPackage.deposit_amount ?? 0
     : selectedPackage?.public_price ?? 0;
+  const guestAge = form.guest_dob
+    ? Math.floor((Date.now() - Date.parse(form.guest_dob)) / (365.25 * 24 * 60 * 60 * 1000))
+    : null;
+  const isUnder21 = guestAge != null && guestAge < 21;
+  const canSubmit = !submitting && !isUnder21 && form.compliance_acknowledged;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,6 +77,8 @@ export default function BookingFlowPage() {
         guest_name: form.guest_name,
         guest_email: form.guest_email,
         guest_phone: form.guest_phone,
+        guest_dob: form.guest_dob,
+        compliance_acknowledged: form.compliance_acknowledged,
         check_in_date: form.check_in_date,
         check_out_date: form.check_out_date,
         nights,
@@ -131,13 +140,32 @@ export default function BookingFlowPage() {
             Email
             <input required type="email" value={form.guest_email} onChange={(event) => { setForm((current) => ({ ...current, guest_email: event.target.value })); setStep(3); }} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
           </label>
+          <label className="block space-y-2 text-sm text-slate-300">
+            Date of birth
+            <input required type="date" value={form.guest_dob} onChange={(event) => setForm((current) => ({ ...current, guest_dob: event.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+          </label>
+          <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-300">
+            <input
+              required
+              type="checkbox"
+              checked={form.compliance_acknowledged}
+              onChange={(event) => setForm((current) => ({ ...current, compliance_acknowledged: event.target.checked }))}
+              className="mt-1 size-4 accent-cyan-300"
+            />
+            <span>I agree to present a valid photo ID and a major credit card matching my name for a security deposit upon check-in at the resort.</span>
+          </label>
+          {isUnder21 ? (
+            <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-3 text-sm text-amber-100">
+              Primary guest must be 21 or older to complete checkout.
+            </div>
+          ) : null}
 
           {paymentMessage ? <div className="rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 text-sm text-cyan-100">{paymentMessage}</div> : null}
           {error ? <ErrorState title="Booking draft failed" message={error} /> : null}
 
           <div className="flex items-center justify-between gap-4 pt-4">
             <Link to={`/resorts/${resort.slug}`} className="text-sm text-slate-300 hover:text-white">Back to resort</Link>
-            <button type="submit" disabled={submitting} className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200 disabled:opacity-60">
+            <button type="submit" disabled={!canSubmit} className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200 disabled:opacity-60">
               {submitting ? "Preparing secure payment" : "Reserve now"}
             </button>
           </div>
@@ -161,6 +189,18 @@ export default function BookingFlowPage() {
           <div className="flex items-center justify-between text-sm text-slate-300">
             <span>Public price</span>
             <span>{formatCurrency(selectedPackage.public_price)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-slate-300">
+            <span>Base cost</span>
+            <span>{formatCurrency(selectedPackage.base_cost)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-slate-300">
+            <span>Guest certificate fee</span>
+            <span>{formatCurrency(selectedPackage.guest_certificate_fee)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-slate-300">
+            <span>Ocean Luxe markup</span>
+            <span>{formatCurrency(selectedPackage.markup_amount)}</span>
           </div>
           <div className="flex items-center justify-between text-sm text-slate-300">
             <span>Payment mode</span>

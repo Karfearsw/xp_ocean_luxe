@@ -1,7 +1,7 @@
 import type { ApiRequest, ApiResponse } from "../_lib/http";
 import { withCache } from "../_lib/cache";
 import { fallbackPackages, fallbackResorts } from "../_lib/sample-data";
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
+import { getDbAdapter } from "../_lib/db-adapter";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "GET") {
@@ -16,8 +16,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   const payload = await withCache(`resort:${rawSlug}`, 60000, async () => {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
+    const db = getDbAdapter();
+    if (!db) {
       const resort = fallbackResorts.find((entry) => entry.slug === rawSlug);
       if (!resort) {
         throw new Error("Resort not found");
@@ -27,30 +27,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         packages: fallbackPackages.filter((entry) => entry.resort_id === resort.id),
       };
     }
-
-    const { data: resort, error: resortError } = await supabase
-      .from("resorts")
-      .select("*")
-      .eq("slug", rawSlug)
-      .eq("active", true)
-      .single();
-
-    if (resortError || !resort) {
-      throw new Error(resortError?.message ?? "Resort not found");
+    const result = await db.getResortWithPackages(rawSlug);
+    if (!result) {
+      throw new Error("Resort not found");
     }
-
-    const { data: packages, error: packagesError } = await supabase
-      .from("packages")
-      .select("*")
-      .eq("resort_id", resort.id)
-      .eq("active", true)
-      .order("public_price", { ascending: true });
-
-    if (packagesError) {
-      throw new Error(packagesError.message);
-    }
-
-    return { resort, packages: packages ?? [] };
+    return result;
   });
 
   res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");

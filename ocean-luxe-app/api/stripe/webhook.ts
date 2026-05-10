@@ -1,10 +1,10 @@
 import { bookingConfirmationEmail } from "../_lib/email-templates/booking-confirmation";
 import { paymentFailedEmail } from "../_lib/email-templates/payment-failed";
 import { buildCrmPayload } from "../_lib/crm-sync";
+import { getDbAdapter } from "../_lib/db-adapter";
 import type { ApiRequest, ApiResponse } from "../_lib/http";
 import { getResend } from "../_lib/resend";
 import { getStripe } from "../_lib/stripe";
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
 
 function getRawBody(body: unknown) {
   if (typeof body === "string" || body instanceof Buffer) {
@@ -37,8 +37,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   const stripe = getStripe();
-  const supabase = getSupabaseAdmin();
-  if (!stripe || !supabase) {
+  const db = getDbAdapter();
+  if (!stripe || !db) {
     res.status(200).json({ received: true, mode: "fallback" });
     return;
   }
@@ -59,31 +59,32 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
-  const { error: duplicateError } = await supabase.from("stripe_webhook_events").insert({
+  const duplicateError = await db.insertStripeWebhookEvent({
     stripe_event_id: event.id,
     event_type: event.type,
     payload: event,
     processed_at: new Date().toISOString(),
   });
 
-  if (duplicateError && !duplicateError.message.includes("duplicate")) {
-    res.status(500).json({ message: duplicateError.message });
+  if (duplicateError && duplicateError !== "duplicate") {
+    res.status(500).json({ message: duplicateError });
     return;
   }
 
   if (event.type === "payment_intent.succeeded") {
     const intent = event.data.object;
     const bookingId = intent.metadata.bookingId;
-    const { data: booking } = await supabase
-      .from("bookings")
-      .update({ payment_status: "paid", booking_status: "confirmed", stripe_payment_intent_id: intent.id, crm_sync_status: "pending", email_status: "sent" })
-      .eq("id", bookingId)
-      .select()
-      .single();
+    const booking = await db.markBooking(bookingId, {
+      payment_status: "paid",
+      booking_status: "confirmed",
+      stripe_payment_intent_id: intent.id,
+      crm_sync_status: "pending",
+      email_status: "sent",
+    });
 
     if (booking) {
-      const crmPayload = buildCrmPayload(booking);
-      await supabase.from("crm_sync_queue").insert([
+      const crmPayload = buildCrmPayload({ ...booking, event_type: "booking_paid" });
+      await db.enqueueCrmJobs([
         { booking_id: booking.id, destination: "crm_rest", payload: crmPayload },
         { booking_id: booking.id, destination: "discord", payload: crmPayload },
       ]);
@@ -95,15 +96,36 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (event.type === "payment_intent.payment_failed") {
     const intent = event.data.object;
     const bookingId = intent.metadata.bookingId;
-    const { data: booking } = await supabase
-      .from("bookings")
-      .update({ payment_status: "failed", booking_status: "pending_payment", email_status: "failed" })
-      .eq("id", bookingId)
-      .select()
-      .single();
+    const booking = await db.markBooking(bookingId, {
+      payment_status: "failed",
+      booking_status: "pending_payment",
+      email_status: "failed",
+    });
 
     if (booking) {
+      const crmPayload = buildCrmPayload({ ...booking, event_type: "booking_payment_failed" });
+      await db.enqueueCrmJobs([
+        { booking_id: booking.id, destination: "crm_rest", payload: crmPayload },
+      ]);
       await sendEmail(booking.guest_email, paymentFailedEmail(booking.id));
+    }
+  }
+
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object;
+    const bookingId = charge.metadata?.bookingId;
+    if (bookingId) {
+      const booking = await db.markBooking(bookingId, {
+        payment_status: "refunded",
+        booking_status: "refunded",
+        crm_sync_status: "pending",
+      });
+      if (booking) {
+        const crmPayload = buildCrmPayload({ ...booking, event_type: "booking_refunded" });
+        await db.enqueueCrmJobs([
+          { booking_id: booking.id, destination: "crm_rest", payload: crmPayload },
+        ]);
+      }
     }
   }
 

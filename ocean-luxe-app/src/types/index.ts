@@ -26,6 +26,7 @@ export interface ResortPackage {
   check_out_rules?: string | null;
   nights: number;
   base_cost: number;
+  guest_certificate_fee: number;
   markup_amount: number;
   public_price: number;
   payment_mode: "full" | "deposit";
@@ -51,6 +52,8 @@ export interface BookingDraft {
   guest_name: string;
   guest_email: string;
   guest_phone: string;
+  guest_dob: string;
+  compliance_acknowledged: boolean;
   check_in_date: string;
   check_out_date: string;
   nights: number;
@@ -64,6 +67,7 @@ export interface BookingRecord extends BookingDraft {
   payment_status: string;
   booking_status: string;
   stripe_payment_intent_id?: string | null;
+  provider_confirmation_number?: string | null;
   created_at: string;
 }
 

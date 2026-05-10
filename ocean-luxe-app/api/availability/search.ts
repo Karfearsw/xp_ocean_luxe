@@ -1,7 +1,7 @@
 import { availabilitySearchSchema } from "../../../shared/contracts/bookings";
 import type { ApiRequest, ApiResponse } from "../_lib/http";
 import { fallbackAvailability } from "../_lib/sample-data";
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
+import { getDbAdapter } from "../_lib/db-adapter";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "GET") {
@@ -21,23 +21,21 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  const db = getDbAdapter();
+  if (!db) {
     res.status(200).json(fallbackAvailability);
     return;
   }
 
-  let query = supabase.from("availability_blocks").select("*").eq("status", "available").order("start_date", { ascending: true });
-  if (parsed.data.resortId) query = query.eq("resort_id", parsed.data.resortId);
-  if (parsed.data.startDate) query = query.gte("start_date", parsed.data.startDate);
-  if (parsed.data.endDate) query = query.lte("end_date", parsed.data.endDate);
-
-  const { data, error } = await query;
-  if (error) {
+  try {
+    const data = await db.searchAvailableBlocks({
+      resortId: parsed.data.resortId,
+      startDate: parsed.data.startDate,
+      endDate: parsed.data.endDate,
+    });
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+    res.status(200).json(data ?? []);
+  } catch (error) {
     res.status(500).json({ message: error.message });
-    return;
   }
-
-  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
-  res.status(200).json(data ?? []);
 }

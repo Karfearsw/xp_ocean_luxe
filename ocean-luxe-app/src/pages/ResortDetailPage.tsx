@@ -76,7 +76,7 @@ export default function ResortDetailPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-2xl font-semibold">{pkg.package_name}</h3>
-                  <p className="mt-2 text-sm text-slate-300">{pkg.nights} nights · {pkg.refundable ? "Refundable" : "Final sale"}</p>
+                  <p className="mt-2 text-sm text-slate-300">{pkg.nights} nights Â· {pkg.refundable ? "Refundable" : "Final sale"}</p>
                 </div>
                 <span className="rounded-full border border-cyan-200/20 bg-cyan-400/10 px-3 py-1 text-sm text-cyan-100">
                   {pkg.payment_mode === "deposit" ? `Deposit ${formatCurrency(pkg.deposit_amount ?? 0)}` : "Pay in full"}
@@ -88,6 +88,9 @@ export default function ResortDetailPage() {
                 <div>
                   <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Public price</p>
                   <p className="mt-2 text-3xl font-semibold">{formatCurrency(pkg.public_price)}</p>
+                  <p className="mt-2 text-xs text-slate-400">
+                    Base {formatCurrency(pkg.base_cost)} + certificate {formatCurrency(pkg.guest_certificate_fee)} + markup {formatCurrency(pkg.markup_amount)}
+                  </p>
                 </div>
                 <Link to={`/book/${resort.slug}/${pkg.id}`} className="rounded-full bg-cyan-300 px-5 py-3 font-medium text-slate-950 transition hover:bg-cyan-200">
                   Reserve now

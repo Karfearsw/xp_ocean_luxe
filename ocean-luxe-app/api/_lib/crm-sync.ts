@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "./supabase-admin";
+import { getDbAdapter } from "./db-adapter";
 
 type BookingSyncRecord = {
   id: string;
@@ -14,6 +14,8 @@ type BookingSyncRecord = {
   check_out_date: string;
   customer_price: number;
   margin: number;
+  provider_confirmation_number?: string | null;
+  event_type?: string;
 };
 
 async function sendDiscordWebhook(payload: Record<string, unknown>) {
@@ -71,44 +73,37 @@ export function buildCrmPayload(booking: BookingSyncRecord) {
     checkOutDate: booking.check_out_date,
     customerPrice: booking.customer_price,
     margin: booking.margin,
+    providerConfirmationNumber: booking.provider_confirmation_number ?? null,
+    eventType: booking.event_type ?? "booking_updated",
   };
 }
 
 export async function processPendingQueue(limit = 20) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return { processed: 0, skipped: true };
-
-  const { data: jobs, error } = await supabase
-    .from("crm_sync_queue")
-    .select("*")
-    .in("status", ["pending", "failed"])
-    .lte("next_attempt_at", new Date().toISOString())
-    .order("created_at", { ascending: true })
-    .limit(limit);
-
-  if (error || !jobs) throw new Error(error?.message ?? "Unable to load sync queue.");
+  const db = getDbAdapter();
+  if (!db) return { processed: 0, skipped: true };
+  const jobs = await db.listPendingSyncJobs(limit);
 
   let processed = 0;
 
   for (const job of jobs) {
-    await supabase.from("crm_sync_queue").update({ status: "processing", locked_at: new Date().toISOString() }).eq("id", job.id);
+    await db.patchSyncJob(job.id, { status: "processing", locked_at: new Date().toISOString() });
     try {
       if (job.destination === "crm_rest") {
         await sendCrmRest(job.payload);
       } else {
         await sendDiscordWebhook(job.payload);
       }
-      await supabase.from("crm_sync_queue").update({ status: "sent", sent_at: new Date().toISOString(), last_error: null }).eq("id", job.id);
+      await db.patchSyncJob(job.id, { status: "sent", sent_at: new Date().toISOString(), last_error: null });
       processed += 1;
     } catch (reason) {
       const attempts = Number(job.attempt_count ?? 0) + 1;
       const terminal = attempts >= 5;
-      await supabase.from("crm_sync_queue").update({
+      await db.patchSyncJob(job.id, {
         status: terminal ? "dead_letter" : "failed",
         attempt_count: attempts,
         last_error: reason instanceof Error ? reason.message : "Unknown sync failure",
         next_attempt_at: new Date(Date.now() + Math.min(attempts * 300000, 3600000)).toISOString(),
-      }).eq("id", job.id);
+      });
     }
   }
 

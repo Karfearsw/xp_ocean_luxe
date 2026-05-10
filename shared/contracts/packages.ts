@@ -9,6 +9,7 @@ export interface ResortPackage {
   check_out_rules?: string | null;
   nights: number;
   base_cost: number;
+  guest_certificate_fee: number;
   markup_amount: number;
   public_price: number;
   payment_mode: PaymentMode;
@@ -33,6 +34,7 @@ export const packageSchema = {
       check_out_rules: optionalStringField(value.check_out_rules),
       nights: numberField(value.nights, "nights", errors) ?? 0,
       base_cost: numberField(value.base_cost, "base_cost", errors) ?? 0,
+      guest_certificate_fee: numberField(value.guest_certificate_fee, "guest_certificate_fee", errors) ?? 0,
       markup_amount: numberField(value.markup_amount, "markup_amount", errors) ?? 0,
       public_price: numberField(value.public_price, "public_price", errors) ?? 0,
       payment_mode: paymentMode,
@@ -43,6 +45,7 @@ export const packageSchema = {
 
     if (payload.nights <= 0) errors.nights = ["nights must be greater than zero."];
     if (payload.base_cost < 0) errors.base_cost = ["base_cost cannot be negative."];
+    if (payload.guest_certificate_fee < 0) errors.guest_certificate_fee = ["guest_certificate_fee cannot be negative."];
     if (payload.markup_amount < 0) errors.markup_amount = ["markup_amount cannot be negative."];
     if (payload.public_price < 0) errors.public_price = ["public_price cannot be negative."];
     if (payload.payment_mode === "deposit") {

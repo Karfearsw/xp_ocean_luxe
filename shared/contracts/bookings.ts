@@ -7,6 +7,8 @@ export interface BookingDraft {
   guest_name: string;
   guest_email: string;
   guest_phone: string;
+  guest_dob: string;
+  compliance_acknowledged: boolean;
   check_in_date: string;
   check_out_date: string;
   nights: number;
@@ -20,6 +22,7 @@ export interface BookingRecord extends BookingDraft {
   payment_status: PaymentStatus;
   booking_status: BookingStatus;
   stripe_payment_intent_id?: string | null;
+  provider_confirmation_number?: string | null;
   created_at: string;
 }
 
@@ -40,6 +43,8 @@ export const bookingDraftSchema = {
       guest_name: stringField(value.guest_name, "guest_name", 2, errors) ?? "",
       guest_email: emailField(value.guest_email, "guest_email", errors) ?? "",
       guest_phone: stringField(value.guest_phone, "guest_phone", 7, errors) ?? "",
+      guest_dob: dateField(value.guest_dob, "guest_dob", errors) ?? "",
+      compliance_acknowledged: value.compliance_acknowledged === true,
       check_in_date: dateField(value.check_in_date, "check_in_date", errors) ?? "",
       check_out_date: dateField(value.check_out_date, "check_out_date", errors) ?? "",
       nights: numberField(value.nights, "nights", errors) ?? 0,
@@ -48,6 +53,9 @@ export const bookingDraftSchema = {
     if (payload.nights <= 0) errors.nights = ["nights must be greater than zero."];
     if (payload.check_in_date && payload.check_out_date && Date.parse(payload.check_out_date) <= Date.parse(payload.check_in_date)) {
       errors.check_out_date = ["check_out_date must be after check_in_date."];
+    }
+    if (!payload.compliance_acknowledged) {
+      errors.compliance_acknowledged = ["compliance_acknowledged must be true."];
     }
 
     return Object.keys(errors).length ? failure(errors) : success(payload);
@@ -78,6 +86,7 @@ export const bookingRecordSchema = {
       payment_status: paymentStatus ?? "draft",
       booking_status: bookingStatus ?? "draft",
       stripe_payment_intent_id: typeof value.stripe_payment_intent_id === "string" ? value.stripe_payment_intent_id : null,
+      provider_confirmation_number: typeof value.provider_confirmation_number === "string" ? value.provider_confirmation_number : null,
       created_at: dateField(value.created_at, "created_at", errors) ?? "",
     };
 
