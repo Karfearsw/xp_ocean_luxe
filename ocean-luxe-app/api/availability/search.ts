@@ -1,7 +1,7 @@
 import { availabilitySearchSchema } from "../../../shared/contracts/bookings";
-import type { ApiRequest, ApiResponse } from "../_lib/http";
-import { fallbackAvailability } from "../_lib/sample-data";
-import { getDbAdapter } from "../_lib/db-adapter";
+import type { ApiRequest, ApiResponse } from "../_lib/http.js";
+import { fallbackAvailability } from "../_lib/sample-data.js";
+import { getDbAdapter } from "../_lib/db-adapter.js";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "GET") {

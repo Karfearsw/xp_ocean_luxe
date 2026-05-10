@@ -1,4 +1,4 @@
-import type { ApiRequest } from "./http";
+import type { ApiRequest } from "./http.js";
 
 export function isAdminAuthorized(req: ApiRequest) {
   const configuredToken = process.env.ADMIN_API_TOKEN;

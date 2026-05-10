@@ -1,7 +1,7 @@
-import type { ApiRequest, ApiResponse } from "../_lib/http";
-import { withCache } from "../_lib/cache";
-import { fallbackPackages, fallbackResorts } from "../_lib/sample-data";
-import { getDbAdapter } from "../_lib/db-adapter";
+import type { ApiRequest, ApiResponse } from "../_lib/http.js";
+import { withCache } from "../_lib/cache.js";
+import { fallbackPackages, fallbackResorts } from "../_lib/sample-data.js";
+import { getDbAdapter } from "../_lib/db-adapter.js";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "GET") {

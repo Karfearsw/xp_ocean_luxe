@@ -1,5 +1,5 @@
-import type { ApiRequest, ApiResponse } from "../_lib/http";
-import { createBookingDraftRecord } from "../_lib/booking-service";
+import type { ApiRequest, ApiResponse } from "../_lib/http.js";
+import { createBookingDraftRecord } from "../_lib/booking-service.js";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "POST") {

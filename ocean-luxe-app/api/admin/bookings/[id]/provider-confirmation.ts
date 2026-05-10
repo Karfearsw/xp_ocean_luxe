@@ -1,9 +1,9 @@
-import { buildCrmPayload } from "../../../_lib/crm-sync";
-import { getDbAdapter } from "../../../_lib/db-adapter";
-import { finalItineraryEmail } from "../../../_lib/email-templates/final-itinerary";
-import type { ApiRequest, ApiResponse } from "../../../_lib/http";
-import { isAdminAuthorized } from "../../../_lib/admin-auth";
-import { getResend } from "../../../_lib/resend";
+import { buildCrmPayload } from "../../../_lib/crm-sync.js";
+import { getDbAdapter } from "../../../_lib/db-adapter.js";
+import { finalItineraryEmail } from "../../../_lib/email-templates/final-itinerary.js";
+import type { ApiRequest, ApiResponse } from "../../../_lib/http.js";
+import { isAdminAuthorized } from "../../../_lib/admin-auth.js";
+import { getResend } from "../../../_lib/resend.js";
 
 async function sendEmail(to: string, content: { subject: string; html: string }) {
   const resend = getResend();

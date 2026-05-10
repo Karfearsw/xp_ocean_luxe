@@ -1,7 +1,7 @@
 import { bookingDraftSchema } from "../../../shared/contracts/bookings";
-import type { ApiResponse } from "./http";
-import { fallbackPackages, fallbackResorts } from "./sample-data";
-import { getDbAdapter } from "./db-adapter";
+import type { ApiResponse } from "./http.js";
+import { fallbackPackages, fallbackResorts } from "./sample-data.js";
+import { getDbAdapter } from "./db-adapter.js";
 
 function jsonResponse(res: ApiResponse, status: number, payload: unknown) {
   res.status(status).setHeader("Content-Type", "application/json").send(JSON.stringify(payload));

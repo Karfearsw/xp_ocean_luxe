@@ -1,4 +1,4 @@
-import { getDbAdapter } from "./db-adapter";
+import { getDbAdapter } from "./db-adapter.js";
 
 type BookingSyncRecord = {
   id: string;

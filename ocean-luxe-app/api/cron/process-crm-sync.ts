@@ -1,5 +1,5 @@
-import type { ApiRequest, ApiResponse } from "../_lib/http";
-import { processPendingQueue } from "../_lib/crm-sync";
+import type { ApiRequest, ApiResponse } from "../_lib/http.js";
+import { processPendingQueue } from "../_lib/crm-sync.js";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "GET") {

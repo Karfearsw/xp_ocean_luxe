@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getSupabaseAdmin } from "./supabase-admin";
+import { getSupabaseAdmin } from "./supabase-admin.js";
 
 type QueryValue = string | number | boolean | null;
 

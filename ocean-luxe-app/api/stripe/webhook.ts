@@ -1,10 +1,10 @@
-import { bookingConfirmationEmail } from "../_lib/email-templates/booking-confirmation";
-import { paymentFailedEmail } from "../_lib/email-templates/payment-failed";
-import { buildCrmPayload } from "../_lib/crm-sync";
-import { getDbAdapter } from "../_lib/db-adapter";
-import type { ApiRequest, ApiResponse } from "../_lib/http";
-import { getResend } from "../_lib/resend";
-import { getStripe } from "../_lib/stripe";
+import { bookingConfirmationEmail } from "../_lib/email-templates/booking-confirmation.js";
+import { paymentFailedEmail } from "../_lib/email-templates/payment-failed.js";
+import { buildCrmPayload } from "../_lib/crm-sync.js";
+import { getDbAdapter } from "../_lib/db-adapter.js";
+import type { ApiRequest, ApiResponse } from "../_lib/http.js";
+import { getResend } from "../_lib/resend.js";
+import { getStripe } from "../_lib/stripe.js";
 
 function getRawBody(body: unknown) {
   if (typeof body === "string" || body instanceof Buffer) {
