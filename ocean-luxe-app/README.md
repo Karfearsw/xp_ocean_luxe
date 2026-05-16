@@ -7,7 +7,7 @@ Public-facing booking application for XP Ocean Luxe, built with Vite, React, Typ
 - Public booking storefront under `src/`
 - Serverless booking and payment APIs under `api/`
 - Shared request/response validation contracts in `../shared/contracts`
-- Postgres SQL migration scaffolding in `../supabase` (used as the canonical SQL source for local/preview runs)
+- Postgres SQL migrations in `../db/migrations` (canonical schema source for local/preview runs)
 - Deployment and release notes in `../ocean-luxe-estate`
 
 ## Core Flows

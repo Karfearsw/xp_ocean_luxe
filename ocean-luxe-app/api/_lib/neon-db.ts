@@ -1,9 +1,7 @@
 import { Pool } from "pg";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __oceanLuxePool: Pool | undefined;
-  // eslint-disable-next-line no-var
   var __oceanLuxeDbReady: Promise<void> | undefined;
 }
 
@@ -15,14 +13,24 @@ export function isProductionRuntime() {
   return process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
 }
 
+function assertValidDatabaseUrl(url: string) {
+  if (!/^postgres(ql)?:\/\//i.test(url)) {
+    throw new Error(
+      "Invalid DATABASE_URL/POSTGRES_URL/NEON_DATABASE_URL: must start with postgres:// or postgresql://"
+    );
+  }
+}
+
 export function getPool() {
   const connectionString = resolveDatabaseUrl();
   if (!connectionString) {
     if (isProductionRuntime()) {
-      throw new Error("Missing DATABASE_URL for production runtime.");
+      throw new Error("Missing DATABASE_URL/POSTGRES_URL/NEON_DATABASE_URL for production runtime.");
     }
-    throw new Error("Missing DATABASE_URL.");
+    throw new Error("Missing DATABASE_URL/POSTGRES_URL/NEON_DATABASE_URL.");
   }
+
+  assertValidDatabaseUrl(connectionString);
 
   if (!globalThis.__oceanLuxePool) {
     globalThis.__oceanLuxePool = new Pool({
@@ -58,4 +66,3 @@ export async function ensureDbReady() {
   }
   return globalThis.__oceanLuxeDbReady;
 }
-

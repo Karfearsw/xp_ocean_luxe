@@ -18,7 +18,7 @@ const pool = new Pool({
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const migrationsDir = path.resolve(__dirname, "../../supabase/migrations");
+const migrationsDir = path.resolve(__dirname, "../../db/migrations");
 
 async function ensureMigrationsTable(client) {
   await client.query(`
@@ -71,4 +71,3 @@ async function main() {
 }
 
 await main();
-

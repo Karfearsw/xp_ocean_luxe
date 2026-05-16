@@ -1,9 +1,9 @@
 # Ocean Luxe Production Deployment Notes
 
 ## Shared Backend
-- Use one Supabase project for Postgres, Auth, and Storage.
-- Apply migrations from `supabase/migrations` before deploying either frontend.
-- Create the `resort-media` storage bucket and confirm storage policies are active.
+- Use one Neon Postgres project/branch for the shared production schema across app variants.
+- Apply migrations from `db/migrations` before deploying either frontend.
+- Store media as URLs in Postgres (`resorts.hero_image_url`, `resorts.gallery_images`, `media_assets.file_url`) and keep object storage concerns outside this repo.
 
 ## Vercel Project A
 - App: `ocean-luxe-app`

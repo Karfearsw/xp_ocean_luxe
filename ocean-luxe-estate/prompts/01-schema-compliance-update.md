@@ -8,7 +8,7 @@ Update XP Ocean Luxe data contracts and SQL schema for guest-certificate complia
 - Add `bookings.provider_confirmation_number` (text, nullable).
 
 ## Files
-- `supabase/migrations/0005_guest_certificate_compliance.sql`
+- `db/migrations/0005_guest_certificate_compliance.sql`
 - `shared/contracts/packages.ts`
 - `shared/contracts/bookings.ts`
 - `ocean-luxe-app/src/types/index.ts`
