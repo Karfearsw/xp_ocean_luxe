@@ -5,6 +5,7 @@ import { getDbAdapter } from "../_lib/db-adapter.js";
 import type { ApiRequest, ApiResponse } from "../_lib/http.js";
 import { getResend } from "../_lib/resend.js";
 import { getStripe } from "../_lib/stripe.js";
+import { withErrorHandling } from "../_lib/handler.js";
 
 function getRawBody(body: unknown) {
   if (typeof body === "string" || body instanceof Buffer) {
@@ -30,7 +31,7 @@ async function sendEmail(to: string, content: { subject: string; html: string })
   });
 }
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
+async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method not allowed" });
     return;
@@ -131,3 +132,5 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   res.status(200).json({ received: true });
 }
+
+export default withErrorHandling(handler);

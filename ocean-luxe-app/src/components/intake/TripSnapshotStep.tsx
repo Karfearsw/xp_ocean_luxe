@@ -1,8 +1,8 @@
 import { Check, ChevronRight } from "lucide-react";
-import Field from "@/components/intake/Field";
-import { inputCx, priorityOptions } from "@/components/intake/constants";
-import Select from "@/components/ui/Select";
-import type { Lane, TripSnapshot } from "@/hooks/useIntakeStore";
+import Field from "./Field";
+import { inputCx, priorityOptions } from "./constants";
+import Select from "../ui/Select";
+import type { Lane, TripSnapshot } from "../../hooks/useIntakeStore";
 
 function laneLabel(lane: Lane) {
   if (lane === "family") return "Affluent Families";

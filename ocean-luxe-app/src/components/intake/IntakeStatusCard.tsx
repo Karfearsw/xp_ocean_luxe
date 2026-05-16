@@ -1,4 +1,4 @@
-import type { Lane } from "@/hooks/useIntakeStore";
+import type { Lane } from "../../hooks/useIntakeStore";
 
 function laneLabel(lane: Lane) {
   if (lane === "family") return "Affluent Families";
@@ -51,4 +51,3 @@ export default function IntakeStatusCard({
     </div>
   );
 }
-

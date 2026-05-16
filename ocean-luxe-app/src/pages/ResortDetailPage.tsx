@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import LoadingState from "@/components/state/LoadingState";
-import ErrorState from "@/components/state/ErrorState";
-import EmptyState from "@/components/state/EmptyState";
-import { fetchResortBySlug } from "@/lib/api-client";
-import { formatCurrency } from "@/lib/formatters";
-import type { Resort, ResortPackage } from "@/types";
+import LoadingState from "../components/state/LoadingState";
+import ErrorState from "../components/state/ErrorState";
+import EmptyState from "../components/state/EmptyState";
+import { fetchResortBySlug } from "../lib/api-client";
+import { formatCurrency } from "../lib/formatters";
+import type { Resort, ResortPackage } from "../types";
 
 export default function ResortDetailPage() {
   const { slug = "" } = useParams();

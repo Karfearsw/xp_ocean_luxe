@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import LoadingState from "@/components/state/LoadingState";
-import EmptyState from "@/components/state/EmptyState";
-import ErrorState from "@/components/state/ErrorState";
-import { fetchResorts } from "@/lib/api-client";
-import type { Resort } from "@/types";
+import LoadingState from "../components/state/LoadingState";
+import EmptyState from "../components/state/EmptyState";
+import ErrorState from "../components/state/ErrorState";
+import { fetchResorts } from "../lib/api-client";
+import type { Resort } from "../types";
 
 export default function ResortsPage() {
   const [resorts, setResorts] = useState<Resort[]>([]);

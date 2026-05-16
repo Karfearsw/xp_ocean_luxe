@@ -1,4 +1,4 @@
-import { policySections } from "@/content/policies";
+import { policySections } from "../content/policies";
 
 export default function PoliciesPage() {
   return (

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Field from "@/components/intake/Field";
-import { inputCx } from "@/components/intake/constants";
-import Select from "@/components/ui/Select";
+import Field from "../components/intake/Field";
+import { inputCx } from "../components/intake/constants";
+import Select from "../components/ui/Select";
 
 export default function Partners() {
   const [submitted, setSubmitted] = useState(false);

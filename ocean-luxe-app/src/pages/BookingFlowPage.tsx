@@ -1,11 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import EmptyState from "@/components/state/EmptyState";
-import ErrorState from "@/components/state/ErrorState";
-import LoadingState from "@/components/state/LoadingState";
-import { createBookingDraft, createPaymentIntent, fetchResortBySlug } from "@/lib/api-client";
-import { formatCurrency, nightsBetween } from "@/lib/formatters";
-import type { Resort, ResortPackage } from "@/types";
+import EmptyState from "../components/state/EmptyState";
+import ErrorState from "../components/state/ErrorState";
+import LoadingState from "../components/state/LoadingState";
+import { createBookingDraft, createPaymentIntent, fetchResortBySlug } from "../lib/api-client";
+import { formatCurrency, nightsBetween } from "../lib/formatters";
+import type { Resort, ResortPackage } from "../types";
 
 const initialForm = {
   guest_name: "",

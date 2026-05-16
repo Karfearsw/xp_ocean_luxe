@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { trustHighlights } from "@/content/trust-copy";
+import { trustHighlights } from "../content/trust-copy";
 
 export default function Home() {
   return (

@@ -1,8 +1,8 @@
 import { ChevronRight } from "lucide-react";
-import Field from "@/components/intake/Field";
-import { inputCx } from "@/components/intake/constants";
-import Select from "@/components/ui/Select";
-import type { ConciergeIntake } from "@/hooks/useIntakeStore";
+import Field from "./Field";
+import { inputCx } from "./constants";
+import Select from "../ui/Select";
+import type { ConciergeIntake } from "../../hooks/useIntakeStore";
 
 function required(value: string) {
   return value.trim().length > 0;

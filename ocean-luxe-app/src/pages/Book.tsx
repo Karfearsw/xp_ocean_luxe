@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import IntakeStatusCard from "@/components/intake/IntakeStatusCard";
-import TripSnapshotStep from "@/components/intake/TripSnapshotStep";
-import ConciergeIntakeStep from "@/components/intake/ConciergeIntakeStep";
-import { useIntakeStore } from "@/hooks/useIntakeStore";
+import IntakeStatusCard from "../components/intake/IntakeStatusCard";
+import TripSnapshotStep from "../components/intake/TripSnapshotStep";
+import ConciergeIntakeStep from "../components/intake/ConciergeIntakeStep";
+import { useIntakeStore } from "../hooks/useIntakeStore";
 
 export default function Book() {
   const { step, setStep, snapshot, setSnapshot, togglePriority, intake, setIntake, reset } = useIntakeStore();

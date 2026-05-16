@@ -1,4 +1,4 @@
-import type { BookingDraft, BookingRecord, CreateIntentResponse, Resort, ResortPackage } from "@/types";
+import type { BookingDraft, BookingRecord, CreateIntentResponse, Resort, ResortPackage } from "../types";
 
 const fallbackResorts: Resort[] = [
   {

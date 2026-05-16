@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import SiteLayout from "@/components/SiteLayout";
-import Home from "@/pages/Home";
-import ResortsPage from "@/pages/ResortsPage";
-import ResortDetailPage from "@/pages/ResortDetailPage";
-import BookingFlowPage from "@/pages/BookingFlowPage";
-import BookingConfirmationPage from "@/pages/BookingConfirmationPage";
-import PoliciesPage from "@/pages/PoliciesPage";
+import SiteLayout from "./components/SiteLayout";
+import Home from "./pages/Home";
+import ResortsPage from "./pages/ResortsPage";
+import ResortDetailPage from "./pages/ResortDetailPage";
+import BookingFlowPage from "./pages/BookingFlowPage";
+import BookingConfirmationPage from "./pages/BookingConfirmationPage";
+import PoliciesPage from "./pages/PoliciesPage";
 
 export default function App() {
   return (

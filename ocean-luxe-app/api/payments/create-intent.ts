@@ -2,8 +2,9 @@ import type { ApiRequest, ApiResponse } from "../_lib/http.js";
 import { getStripe } from "../_lib/stripe.js";
 import { fallbackPackages } from "../_lib/sample-data.js";
 import { getDbAdapter } from "../_lib/db-adapter.js";
+import { withErrorHandling } from "../_lib/handler.js";
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
+async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method not allowed" });
     return;
@@ -67,3 +68,5 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   res.status(200).json({ clientSecret: intent.client_secret, amount, paymentMode: packageDetails.payment_mode });
 }
+
+export default withErrorHandling(handler);
