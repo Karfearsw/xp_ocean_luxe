@@ -1,0 +1,28 @@
+name: Neon Migrate (Production)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        working-directory: ocean-luxe-app
+        run: npm ci
+
+      - name: Run migrations
+        working-directory: ocean-luxe-app
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+        run: node scripts/migrate.mjs
