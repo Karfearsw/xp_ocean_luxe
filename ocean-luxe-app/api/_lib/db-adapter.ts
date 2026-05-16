@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getSupabaseAdmin } from "./supabase-admin.js";
+import type { PoolClient } from "pg";
+import { ensureDbReady, getPool, isProductionRuntime, resolveDatabaseUrl } from "./neon-db.js";
 
 type QueryValue = string | number | boolean | null;
 
@@ -13,9 +14,9 @@ type SyncJobPatch = {
 };
 
 export interface DbAdapter {
-  getActiveResorts(destination?: string): Promise<unknown[]>;
+  getActiveResorts(destination?: string): Promise<any[]>;
   getResortWithPackages(slug: string): Promise<{ resort: any; packages: any[] } | null>;
-  searchAvailableBlocks(filters: { resortId?: string; startDate?: string; endDate?: string }): Promise<unknown[]>;
+  searchAvailableBlocks(filters: { resortId?: string; startDate?: string; endDate?: string }): Promise<any[]>;
   getBookingById(bookingId: string): Promise<any | null>;
   getPackagePricing(packageId: string): Promise<any | null>;
   markBooking(bookingId: string, patch: Record<string, QueryValue>): Promise<any | null>;
@@ -29,141 +30,239 @@ export interface DbAdapter {
   createBooking(payload: Record<string, unknown>): Promise<any | null>;
 }
 
-function parseDuplicateMessage(errorMessage?: string | null) {
-  if (!errorMessage) return null;
-  if (errorMessage.includes("duplicate") || errorMessage.includes("unique")) {
-    return "duplicate";
+function buildUpdatePatch(patch: Record<string, QueryValue>, allowed: string[]) {
+  const keys = Object.keys(patch).filter((key) => allowed.includes(key));
+  if (!keys.length) return null;
+  const values = keys.map((key) => patch[key]);
+  const sql = keys.map((key, idx) => `"${key}" = $${idx + 1}`).join(", ");
+  return { values, sql };
+}
+
+async function withTx<T>(fn: (client: PoolClient) => Promise<T>) {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const result = await fn(client);
+    await client.query("commit");
+    return result;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
   }
-  return errorMessage;
 }
 
 export function getDbAdapter(): DbAdapter | null {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return null;
+  if (!resolveDatabaseUrl()) {
+    if (isProductionRuntime()) {
+      throw new Error("Missing DATABASE_URL for production runtime.");
+    }
+    if (process.env.ALLOW_OFFLINE_MODE === "true") return null;
+    throw new Error("Missing DATABASE_URL.");
+  }
 
   return {
     async getActiveResorts(destination) {
-      let query = supabase.from("resorts").select("*").eq("active", true).order("name", { ascending: true });
-      if (destination) query = query.eq("destination", destination);
-      const { data, error } = await query;
-      if (error) throw new Error(error.message);
-      return data ?? [];
+      await ensureDbReady();
+      const pool = getPool();
+      const params: any[] = [];
+      let where = `where active = true`;
+      if (destination) {
+        params.push(destination);
+        where += ` and destination = $${params.length}`;
+      }
+      const { rows } = await pool.query(`select * from resorts ${where} order by name asc`, params);
+      return rows;
     },
 
     async getResortWithPackages(slug) {
-      const { data: resort, error: resortError } = await supabase
-        .from("resorts")
-        .select("*")
-        .eq("slug", slug)
-        .eq("active", true)
-        .single();
-      if (resortError || !resort) return null;
-
-      const { data: packages, error: packageError } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("resort_id", resort.id)
-        .eq("active", true)
-        .order("public_price", { ascending: true });
-
-      if (packageError) throw new Error(packageError.message);
-      return { resort, packages: packages ?? [] };
+      await ensureDbReady();
+      const pool = getPool();
+      const resortResult = await pool.query(`select * from resorts where slug = $1 and active = true limit 1`, [slug]);
+      const resort = resortResult.rows[0];
+      if (!resort) return null;
+      const packagesResult = await pool.query(`select * from packages where resort_id = $1 and active = true order by public_price asc`, [
+        resort.id,
+      ]);
+      return { resort, packages: packagesResult.rows };
     },
 
     async searchAvailableBlocks(filters) {
-      let query = supabase.from("availability_blocks").select("*").eq("status", "available").order("start_date", { ascending: true });
-      if (filters.resortId) query = query.eq("resort_id", filters.resortId);
-      if (filters.startDate) query = query.gte("start_date", filters.startDate);
-      if (filters.endDate) query = query.lte("end_date", filters.endDate);
-      const { data, error } = await query;
-      if (error) throw new Error(error.message);
-      return data ?? [];
+      await ensureDbReady();
+      const pool = getPool();
+      const params: any[] = [];
+      let where = `where status = 'available'`;
+      if (filters.resortId) {
+        params.push(filters.resortId);
+        where += ` and resort_id = $${params.length}`;
+      }
+      if (filters.startDate) {
+        params.push(filters.startDate);
+        where += ` and start_date >= $${params.length}`;
+      }
+      if (filters.endDate) {
+        params.push(filters.endDate);
+        where += ` and end_date <= $${params.length}`;
+      }
+      const { rows } = await pool.query(`select * from availability_blocks ${where} order by start_date asc`, params);
+      return rows;
     },
 
     async getBookingById(bookingId) {
-      const { data, error } = await supabase.from("bookings").select("*").eq("id", bookingId).single();
-      if (error || !data) return null;
-      return data;
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(`select * from bookings where id = $1 limit 1`, [bookingId]);
+      return rows[0] ?? null;
     },
 
     async getPackagePricing(packageId) {
-      const { data, error } = await supabase
-        .from("packages")
-        .select("payment_mode, deposit_amount, public_price, guest_certificate_fee, base_cost, markup_amount")
-        .eq("id", packageId)
-        .single();
-      if (error || !data) return null;
-      return data;
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(
+        `select payment_mode, deposit_amount, public_price, guest_certificate_fee, base_cost, markup_amount
+         from packages where id = $1 limit 1`,
+        [packageId]
+      );
+      return rows[0] ?? null;
     },
 
     async markBooking(bookingId, patch) {
-      const { data, error } = await supabase.from("bookings").update(patch).eq("id", bookingId).select().single();
-      if (error || !data) return null;
-      return data;
+      await ensureDbReady();
+      const pool = getPool();
+      const update = buildUpdatePatch(patch, [
+        "payment_status",
+        "booking_status",
+        "stripe_payment_intent_id",
+        "crm_sync_status",
+        "email_status",
+        "provider_confirmation_number",
+      ]);
+      if (!update) return this.getBookingById(bookingId);
+      const { rows } = await pool.query(
+        `update bookings set ${update.sql} where id = $${update.values.length + 1} returning *`,
+        [...update.values, bookingId]
+      );
+      return rows[0] ?? null;
     },
 
     async insertStripeWebhookEvent(payload) {
-      const { error } = await supabase.from("stripe_webhook_events").insert(payload);
-      if (!error) return null;
-      return parseDuplicateMessage(error.message);
+      await ensureDbReady();
+      const pool = getPool();
+      const { rowCount } = await pool.query(
+        `insert into stripe_webhook_events (stripe_event_id, event_type, payload, processed_at)
+         values ($1, $2, $3::jsonb, $4)
+         on conflict (stripe_event_id) do nothing`,
+        [payload.stripe_event_id, payload.event_type, JSON.stringify(payload.payload), payload.processed_at]
+      );
+      if (rowCount === 0) return "duplicate";
+      return null;
     },
 
     async enqueueCrmJobs(payload) {
-      const { error } = await supabase.from("crm_sync_queue").insert(payload);
-      if (error) throw new Error(error.message);
+      await ensureDbReady();
+      const pool = getPool();
+      if (!payload.length) return;
+      const values: any[] = [];
+      const rowsSql = payload
+        .map((job, idx) => {
+          const base = idx * 3;
+          values.push(job.booking_id ?? null, job.destination ?? "crm_rest", JSON.stringify(job.payload ?? {}));
+          return `($${base + 1}, $${base + 2}, $${base + 3}::jsonb)`;
+        })
+        .join(", ");
+      await pool.query(`insert into crm_sync_queue (booking_id, destination, payload) values ${rowsSql}`, values);
     },
 
     async listPendingSyncJobs(limit) {
-      const { data, error } = await supabase
-        .from("crm_sync_queue")
-        .select("*")
-        .in("status", ["pending", "failed"])
-        .lte("next_attempt_at", new Date().toISOString())
-        .order("created_at", { ascending: true })
-        .limit(limit);
-      if (error) throw new Error(error.message);
-      return data ?? [];
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(
+        `select * from crm_sync_queue
+         where status in ('pending','failed')
+           and next_attempt_at <= now()
+         order by created_at asc
+         limit $1`,
+        [limit]
+      );
+      return rows;
     },
 
     async patchSyncJob(jobId, patch) {
-      const { error } = await supabase.from("crm_sync_queue").update(patch).eq("id", jobId);
-      if (error) throw new Error(error.message);
+      await ensureDbReady();
+      const pool = getPool();
+      const update = buildUpdatePatch(patch as Record<string, QueryValue>, [
+        "status",
+        "locked_at",
+        "sent_at",
+        "last_error",
+        "attempt_count",
+        "next_attempt_at",
+      ]);
+      if (!update) return;
+      await pool.query(
+        `update crm_sync_queue set ${update.sql} where id = $${update.values.length + 1}`,
+        [...update.values, jobId]
+      );
     },
 
     async getActivePackageById(packageId) {
-      const { data, error } = await supabase
-        .from("packages")
-        .select("id, resort_id, base_cost, public_price, payment_mode, deposit_amount, active, guest_certificate_fee, markup_amount")
-        .eq("id", packageId)
-        .single();
-      if (error || !data || !data.active) return null;
-      return data;
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(
+        `select id, resort_id, base_cost, public_price, payment_mode, deposit_amount, active, guest_certificate_fee, markup_amount
+         from packages where id = $1 and active = true limit 1`,
+        [packageId]
+      );
+      return rows[0] ?? null;
     },
 
     async lockAvailability(packageId, startDate, endDate) {
-      const { data, error } = await supabase.rpc("lock_available_block", {
-        p_package_id: packageId,
-        p_start: startDate,
-        p_end: endDate,
+      await ensureDbReady();
+      return withTx(async (client) => {
+        const { rows } = await client.query(
+          `select id
+           from availability_blocks
+           where package_id = $1
+             and status = 'available'
+             and start_date <= $2
+             and end_date >= $3
+           order by start_date asc
+           limit 1
+           for update skip locked`,
+          [packageId, startDate, endDate]
+        );
+        const block = rows[0];
+        if (!block) return false;
+        await client.query(`update availability_blocks set status = 'held', updated_at = now() where id = $1`, [block.id]);
+        return true;
       });
-      if (error) return false;
-      return data === true;
     },
 
     async upsertCustomer(payload) {
-      const { data, error } = await supabase
-        .from("customers")
-        .upsert(payload, { onConflict: "email" })
-        .select()
-        .single();
-      if (error || !data) return null;
-      return data;
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(
+        `insert into customers (email, full_name, phone)
+         values ($1, $2, $3)
+         on conflict (email)
+         do update set full_name = excluded.full_name, phone = excluded.phone, updated_at = now()
+         returning *`,
+        [payload.email, payload.full_name, payload.phone]
+      );
+      return rows[0] ?? null;
     },
 
     async createBooking(payload) {
-      const { data, error } = await supabase.from("bookings").insert(payload).select().single();
-      if (error || !data) return null;
-      return data;
+      await ensureDbReady();
+      const pool = getPool();
+      const cols = Object.keys(payload);
+      const vals = cols.map((key) => (payload as any)[key]);
+      const placeholders = cols.map((_, idx) => `$${idx + 1}`).join(", ");
+      const sqlCols = cols.map((name) => `"${name}"`).join(", ");
+      const { rows } = await pool.query(`insert into bookings (${sqlCols}) values (${placeholders}) returning *`, vals);
+      return rows[0] ?? null;
     },
   };
 }

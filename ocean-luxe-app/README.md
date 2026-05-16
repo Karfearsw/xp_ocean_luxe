@@ -1,13 +1,13 @@
 # XP Ocean Luxe Booking App
 
-Public-facing booking application for XP Ocean Luxe, built with Vite, React, TypeScript, Tailwind CSS, Vercel serverless functions, shared domain contracts, and a Supabase-backed booking workflow.
+Public-facing booking application for XP Ocean Luxe, built with Vite, React, TypeScript, Tailwind CSS, Vercel serverless functions, shared domain contracts, and a Neon Postgres-backed booking workflow shared with CRM.
 
 ## What This Repo Contains
 
 - Public booking storefront under `src/`
 - Serverless booking and payment APIs under `api/`
 - Shared request/response validation contracts in `../shared/contracts`
-- Supabase schema and migration scaffolding in `../supabase`
+- Postgres SQL migration scaffolding in `../supabase` (used as the canonical SQL source for local/preview runs)
 - Deployment and release notes in `../ocean-luxe-estate`
 
 ## Core Flows
@@ -45,9 +45,7 @@ npm run check
 
 Create a local `.env` file based on `.env.example` and provide values for:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `RESEND_API_KEY`
