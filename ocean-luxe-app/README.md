@@ -64,6 +64,19 @@ Create a local `.env` file based on `.env.example` and provide values for:
 - Stripe webhook target: `/api/stripe/webhook`
 - Cron target: `/api/cron/process-crm-sync`
 
+## Production Migrations (Neon)
+
+If production returns `Database schema missing required tables`, you must apply migrations to the same database used by Vercel Production `DATABASE_URL`.
+
+- Local run (recommended):
+  - `DATABASE_URL=<production_neon_url> node ocean-luxe-app/scripts/migrate.mjs`
+- GitHub Actions run:
+  - Workflow: `.github/workflows/neon-migrate-production.yml`
+  - Add `DATABASE_URL` as a secret in the GitHub `production` environment.
+
+Verify:
+- `GET https://xp.oceanluxe.org/api/health/db` should return `{ "ok": true }`.
+
 ## Release Status
 
 - Current application version: `0.1.0`
