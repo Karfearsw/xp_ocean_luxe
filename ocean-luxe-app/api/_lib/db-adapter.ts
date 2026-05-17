@@ -16,6 +16,9 @@ type SyncJobPatch = {
 export interface DbAdapter {
   getActiveResorts(destination?: string): Promise<any[]>;
   getResortWithPackages(slug: string): Promise<{ resort: any; packages: any[] } | null>;
+  getResortPublicDetail(
+    slug: string
+  ): Promise<{ resort: any; packages: any[]; room_types: any[]; amenities: any[]; media_assets: any[] } | null>;
   searchAvailableBlocks(filters: { resortId?: string; startDate?: string; endDate?: string }): Promise<any[]>;
   getBookingById(bookingId: string): Promise<any | null>;
   getPackagePricing(packageId: string): Promise<any | null>;
@@ -68,7 +71,7 @@ export function getDbAdapter(): DbAdapter | null {
       await ensureDbReady();
       const pool = getPool();
       const params: any[] = [];
-      let where = `where active = true`;
+      let where = `where active = true and is_published = true`;
       if (destination) {
         params.push(destination);
         where += ` and destination = $${params.length}`;
@@ -87,6 +90,39 @@ export function getDbAdapter(): DbAdapter | null {
         resort.id,
       ]);
       return { resort, packages: packagesResult.rows };
+    },
+
+    async getResortPublicDetail(slug) {
+      await ensureDbReady();
+      const pool = getPool();
+      const resortResult = await pool.query(
+        `select * from resorts where slug = $1 and active = true and is_published = true limit 1`,
+        [slug]
+      );
+      const resort = resortResult.rows[0];
+      if (!resort) return null;
+      const [packagesResult, roomTypesResult, amenitiesResult, mediaResult] = await Promise.all([
+        pool.query(`select * from packages where resort_id = $1 and active = true order by public_price asc`, [resort.id]),
+        pool.query(
+          `select * from room_types where resort_id = $1 and is_active = true order by max_occupancy asc, name asc`,
+          [resort.id]
+        ),
+        pool.query(
+          `select * from resort_amenities where resort_id = $1 order by category asc, sort_order asc, label asc`,
+          [resort.id]
+        ),
+        pool.query(
+          `select * from media_assets where resort_id = $1 order by is_primary desc, sort_order asc, created_at asc`,
+          [resort.id]
+        ),
+      ]);
+      return {
+        resort,
+        packages: packagesResult.rows,
+        room_types: roomTypesResult.rows,
+        amenities: amenitiesResult.rows,
+        media_assets: mediaResult.rows,
+      };
     },
 
     async searchAvailableBlocks(filters) {

@@ -28,7 +28,7 @@ async function handler(req: ApiRequest, res: ApiResponse) {
         packages: fallbackPackages.filter((entry) => entry.resort_id === resort.id),
       };
     }
-    return db.getResortWithPackages(rawSlug);
+    return db.getResortPublicDetail(rawSlug);
   });
 
   if (!payload) {

@@ -50,7 +50,21 @@ export async function ensureDbReady() {
     globalThis.__oceanLuxeDbReady = (async () => {
       const pool = getPool();
       await pool.query("select 1");
-      const requiredTables = ["resorts", "packages", "bookings", "crm_sync_queue", "stripe_webhook_events"];
+      const requiredTables = [
+        "resorts",
+        "packages",
+        "bookings",
+        "crm_sync_queue",
+        "stripe_webhook_events",
+        "availability_blocks",
+        "customers",
+        "media_assets",
+        "room_types",
+        "resort_amenities",
+        "car_types",
+        "concierge_services",
+        "payments",
+      ];
       const { rows } = await pool.query(
         `select table_name
          from information_schema.tables
