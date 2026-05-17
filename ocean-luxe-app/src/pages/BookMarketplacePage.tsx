@@ -1,11 +1,12 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import EmptyState from "../components/state/EmptyState";
 import ErrorState from "../components/state/ErrorState";
 import LoadingState from "../components/state/LoadingState";
-import { createBookingDraft, createPaymentIntent, searchBookOptions } from "../lib/api-client";
+import { createBookingDraft, createPaymentIntent, fetchCarTypes, fetchConciergeServices, searchBookOptions } from "../lib/api-client";
 import { formatCurrency, nightsBetween } from "../lib/formatters";
 import type { BookSearchResult } from "../lib/api-client";
+import type { CarType, ConciergeService } from "../types";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -23,6 +24,10 @@ export default function BookMarketplacePage() {
   const [selected, setSelected] = useState<BookSearchResult | null>(null);
   const [dates, setDates] = useState({ startDate: "", endDate: "" });
   const [guests, setGuests] = useState(2);
+  const [cars, setCars] = useState<CarType[]>([]);
+  const [conciergeServices, setConciergeServices] = useState<ConciergeService[]>([]);
+  const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
+  const [selectedConciergeIds, setSelectedConciergeIds] = useState<string[]>([]);
   const [form, setForm] = useState({
     guest_name: "",
     guest_email: "",
@@ -36,11 +41,76 @@ export default function BookMarketplacePage() {
     return nightsBetween(dates.startDate, dates.endDate);
   }, [dates.endDate, dates.startDate]);
 
-  const dueNow = selected
-    ? selected.payment_mode === "deposit"
-      ? (selected.deposit_amount ?? 0) + selected.guest_certificate_fee
-      : selected.public_price + selected.guest_certificate_fee
-    : 0;
+  const isOrlandoSupported = selected?.is_orlando_concierge_supported === true;
+
+  const selectedCar = useMemo(() => {
+    if (!selectedCarId) return null;
+    return cars.find((car) => car.id === selectedCarId) ?? null;
+  }, [cars, selectedCarId]);
+
+  const selectedConciergeServices = useMemo(() => {
+    if (!selectedConciergeIds.length) return [];
+    const set = new Set(selectedConciergeIds);
+    return conciergeServices.filter((service) => set.has(service.id));
+  }, [conciergeServices, selectedConciergeIds]);
+
+  const carTotal = useMemo(() => {
+    if (!selectedCar) return 0;
+    const dailyRate = Number(selectedCar.base_daily_rate) || 0;
+    const cleaningFee = Number(selectedCar.cleaning_fee) || 0;
+    const deliveryFee = isOrlandoSupported ? Number(selectedCar.delivery_fee_orlando) || 0 : 0;
+    const markupPercent = Number(selectedCar.default_markup_percent) || 0;
+    const base = dailyRate * Math.max(1, nights) + cleaningFee + deliveryFee;
+    return Math.round(base * (1 + markupPercent / 100));
+  }, [isOrlandoSupported, nights, selectedCar]);
+
+  const conciergeTotal = useMemo(() => {
+    return Math.round(
+      selectedConciergeServices.reduce((sum, service) => sum + (Number(service.base_fee) || 0), 0)
+    );
+  }, [selectedConciergeServices]);
+
+  const pricing = useMemo(() => {
+    if (!selected) {
+      return { dueNow: 0, total: 0, balanceDue: 0 };
+    }
+    const guestCertificateFee = Number(selected.guest_certificate_fee) || 0;
+    const publicPrice = Number(selected.public_price) || 0;
+    const packageDeposit = Number(selected.deposit_amount) || 0;
+    const addonsTotal = carTotal + conciergeTotal;
+    const total = publicPrice + guestCertificateFee + addonsTotal;
+    const dueNow = selected.payment_mode === "deposit"
+      ? packageDeposit + guestCertificateFee + addonsTotal
+      : total;
+    return { dueNow, total, balanceDue: Math.max(0, total - dueNow) };
+  }, [carTotal, conciergeTotal, selected]);
+
+  useEffect(() => {
+    if (!selected) return;
+    setSelectedCarId(null);
+    setSelectedConciergeIds([]);
+    setCars([]);
+    setConciergeServices([]);
+
+    let mounted = true;
+    Promise.all([
+      fetchCarTypes({ orlandoOnly: false }),
+      fetchConciergeServices({ orlandoOnly: true }),
+    ])
+      .then(([carsResp, conciergeResp]) => {
+        if (!mounted) return;
+        setCars(carsResp.cars);
+        setConciergeServices(conciergeResp.services);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setCars([]);
+        setConciergeServices([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [selected]);
 
   async function runSearch() {
     if (!dates.startDate || !dates.endDate) {
@@ -76,6 +146,9 @@ export default function BookMarketplacePage() {
         resort_id: selected.resort_id,
         package_id: selected.package_id,
         room_type_id: selected.room_type_id,
+        car_type_id: selectedCarId,
+        concierge_service_id: selectedConciergeIds[0] ?? null,
+        concierge_service_ids: selectedConciergeIds,
         guest_name: form.guest_name,
         guest_email: form.guest_email,
         guest_phone: form.guest_phone,
@@ -202,12 +275,143 @@ export default function BookMarketplacePage() {
                   <div className="mt-2 text-sm text-slate-300">{selected.room_type_name} · {selected.package_name}</div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <div className="text-sm uppercase tracking-[0.35em] text-cyan-200">Extras</div>
-                  <p className="mt-3 text-sm text-slate-300">
-                    Tesla delivery and Orlando concierge will appear when the resort is marked as Orlando-supported in the admin dashboard.
-                    Outside Orlando, these options are labeled as coming soon.
-                  </p>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                    <div className="text-sm uppercase tracking-[0.35em] text-cyan-200">Car Rental</div>
+                    <p className="mt-3 text-sm text-slate-300">
+                      Add transport to your booking. Orlando-supported resorts can request Tesla delivery options. Add-ons are collected now and confirmed by the team after payment.
+                    </p>
+                    <div className="mt-5 space-y-3">
+                      <label className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
+                        <span>No car</span>
+                        <input
+                          type="radio"
+                          name="car"
+                          checked={selectedCarId == null}
+                          onChange={() => setSelectedCarId(null)}
+                          className="size-4 accent-cyan-300"
+                        />
+                      </label>
+                      {cars
+                        .filter((c) => c.category === "Economy")
+                        .map((car) => (
+                          <label key={car.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
+                            <span>{car.name}</span>
+                            <input
+                              type="radio"
+                              name="car"
+                              checked={selectedCarId === car.id}
+                              onChange={() => setSelectedCarId(car.id)}
+                              className="size-4 accent-cyan-300"
+                            />
+                          </label>
+                        ))}
+                      {cars
+                        .filter((c) => c.category !== "Economy")
+                        .map((car) => (
+                          <label
+                            key={car.id}
+                            className={`flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm ${
+                              isOrlandoSupported ? "bg-slate-950/40 text-slate-200" : "bg-slate-950/20 text-slate-500"
+                            }`}
+                          >
+                            <span>{car.name}</span>
+                            <input
+                              type="radio"
+                              name="car"
+                              checked={selectedCarId === car.id}
+                              onChange={() => setSelectedCarId(car.id)}
+                              disabled={!isOrlandoSupported}
+                              className="size-4 accent-cyan-300 disabled:opacity-50"
+                            />
+                          </label>
+                        ))}
+                      {!isOrlandoSupported ? (
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-xs text-slate-400">
+                          Tesla delivery is Orlando-only in v1.
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                    <div className="text-sm uppercase tracking-[0.35em] text-cyan-200">Concierge</div>
+                    <p className="mt-3 text-sm text-slate-300">
+                      Orlando-only concierge services can be added to your booking request. A team member confirms scope and scheduling after payment.
+                    </p>
+                    <div className="mt-5 space-y-3">
+                      <div className="flex items-center justify-between text-sm text-slate-300">
+                        <span>
+                          Selected: {selectedConciergeIds.length ? `${selectedConciergeIds.length} services` : "None"}
+                        </span>
+                        {selectedConciergeIds.length ? (
+                          <button type="button" onClick={() => setSelectedConciergeIds([])} className="text-xs text-slate-300 hover:text-white">
+                            Clear
+                          </button>
+                        ) : null}
+                      </div>
+                      <div className="space-y-3">
+                        {conciergeServices.map((service) => {
+                          const checked = selectedConciergeIds.includes(service.id);
+                          return (
+                            <label
+                              key={service.id}
+                              className={`flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm ${
+                                isOrlandoSupported ? "bg-slate-950/40 text-slate-200" : "bg-slate-950/20 text-slate-500"
+                              }`}
+                            >
+                              <span className="flex flex-col gap-1">
+                                <span>{service.name}</span>
+                                <span className="text-xs text-slate-400">{formatCurrency(Number(service.base_fee) || 0)}</span>
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  setSelectedConciergeIds((current) => {
+                                    if (current.includes(service.id)) return current.filter((id) => id !== service.id);
+                                    return [...current, service.id];
+                                  });
+                                }}
+                                disabled={!isOrlandoSupported}
+                                className="size-4 accent-cyan-300 disabled:opacity-50"
+                              />
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {!isOrlandoSupported ? (
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-xs text-slate-400">
+                          Concierge is currently available only for Orlando/Kissimmee stays.
+                        </div>
+                      ) : null}
+                      <Link to="/concierge-orlando" className="text-sm text-cyan-200 hover:text-cyan-100">
+                        Need full Orlando handling? Submit concierge details →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-slate-950/40 p-5">
+                  <div className="text-xs tracking-[0.24em] text-white/50">ESTIMATED TOTALS</div>
+                  <div className="mt-4 space-y-2 text-sm text-slate-300">
+                    <div className="flex items-center justify-between">
+                      <span>Car total</span>
+                      <span className="text-white">{formatCurrency(carTotal)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Concierge total</span>
+                      <span className="text-white">{formatCurrency(conciergeTotal)}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                      <span>Due now</span>
+                      <span className="text-lg font-semibold text-white">{formatCurrency(pricing.dueNow)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Total trip</span>
+                      <span className="text-white">{formatCurrency(pricing.total)}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
@@ -280,10 +484,26 @@ export default function BookMarketplacePage() {
                     <span>Package</span>
                     <span className="text-right">{selected.package_name}</span>
                   </div>
+                  {carTotal ? (
+                    <div className="flex items-center justify-between text-sm text-slate-300">
+                      <span>Car add-on</span>
+                      <span className="text-right">{formatCurrency(carTotal)}</span>
+                    </div>
+                  ) : null}
+                  {conciergeTotal ? (
+                    <div className="flex items-center justify-between text-sm text-slate-300">
+                      <span>Concierge add-ons</span>
+                      <span className="text-right">{formatCurrency(conciergeTotal)}</span>
+                    </div>
+                  ) : null}
                   <div className="border-t border-white/10 pt-4">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-300">Due now</span>
-                      <span className="text-2xl font-semibold">{formatCurrency(dueNow)}</span>
+                      <span className="text-2xl font-semibold">{formatCurrency(pricing.dueNow)}</span>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-sm text-slate-300">
+                      <span>Total trip</span>
+                      <span className="text-right">{formatCurrency(pricing.total)}</span>
                     </div>
                     <p className="mt-3 text-sm text-slate-400">
                       Payment confirmation is issued only after Stripe webhook verification.

@@ -55,6 +55,7 @@ async function handler(req: ApiRequest, res: ApiResponse) {
       r.region,
       r.destination,
       r.hero_image_url,
+      r.is_orlando_concierge_supported,
       rt.id as room_type_id,
       rt.name as room_type_name,
       rt.max_occupancy,
