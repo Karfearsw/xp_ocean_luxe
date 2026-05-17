@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import * as crypto from "node:crypto";
 import type { ApiRequest, ApiResponse } from "./http.js";
 
 type AdminSession = {
@@ -94,9 +94,8 @@ export function isAdminAuthenticated(req: ApiRequest) {
 
 export function requireAdmin(req: ApiRequest) {
   if (!isAdminAuthenticated(req)) {
-    const err = new Error("Unauthorized");
-    (err as any).status = 401;
+    const err = new Error("Unauthorized") as Error & { status?: number };
+    err.status = 401;
     throw err;
   }
 }
-

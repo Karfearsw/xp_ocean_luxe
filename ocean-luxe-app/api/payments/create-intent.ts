@@ -22,9 +22,13 @@ async function handler(req: ApiRequest, res: ApiResponse) {
   const db = getDbAdapter();
   if (!db) {
     const samplePackage = fallbackPackages[0];
+    const guestCertificateFee = samplePackage.guest_certificate_fee ?? 0;
+    const amount = samplePackage.payment_mode === "deposit"
+      ? (samplePackage.deposit_amount ?? 0) + guestCertificateFee
+      : samplePackage.public_price + guestCertificateFee;
     res.status(200).json({
       clientSecret: `test_secret_${bookingId}`,
-      amount: samplePackage.deposit_amount ?? samplePackage.public_price,
+      amount,
       paymentMode: samplePackage.payment_mode,
     });
     return;
@@ -42,9 +46,26 @@ async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
-  const amount = packageDetails.payment_mode === "deposit"
-    ? packageDetails.deposit_amount ?? 0
-    : packageDetails.public_price;
+  const storedDeposit = typeof booking.deposit_amount === "number" ? booking.deposit_amount : null;
+  const storedTotal = typeof booking.total_price === "number" ? booking.total_price : null;
+  const storedBalance = typeof booking.balance_due === "number" ? booking.balance_due : null;
+
+  let amount = storedDeposit ?? 0;
+  if (!amount) {
+    const guestCertificateFee = packageDetails.guest_certificate_fee ?? 0;
+    const totalPrice = packageDetails.public_price + guestCertificateFee;
+    const depositAmount = packageDetails.payment_mode === "deposit"
+      ? (packageDetails.deposit_amount ?? 0) + guestCertificateFee
+      : totalPrice;
+    amount = depositAmount;
+    if (storedTotal == null || storedBalance == null || storedDeposit == null) {
+      await db.markBooking(booking.id, {
+        total_price: totalPrice,
+        deposit_amount: depositAmount,
+        balance_due: Math.max(0, totalPrice - depositAmount),
+      });
+    }
+  }
 
   const stripe = getStripe();
   if (!stripe) {

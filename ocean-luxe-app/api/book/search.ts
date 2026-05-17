@@ -27,7 +27,7 @@ async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   const pool = getPool();
-  const params: any[] = [startDate, endDate];
+  const params: Array<string | number> = [startDate, endDate];
   let where = `where r.active = true and r.is_published = true`;
 
   if (region) {

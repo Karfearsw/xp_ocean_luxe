@@ -109,6 +109,37 @@ values
 )
 on conflict (slug) do nothing;
 
+insert into public.resorts (
+  name, slug, destination, brand, region,
+  address_line1, city, state, zip, country,
+  description, description_short, description_long,
+  amenities, hero_image_url, gallery_images,
+  has_water_park, has_beach_access, is_ranch, is_orlando_concierge_supported,
+  min_nightly_rate, max_nightly_rate, is_published
+)
+values
+('Westgate Flamingo Bay Resort', 'westgate-flamingo-bay-resort', 'Vegas', 'Westgate', 'Vegas', '', 'Las Vegas', 'NV', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Historic Williamsburg Resort', 'westgate-historic-williamsburg-resort', 'East Coast', 'Westgate', 'East Coast', '', 'Williamsburg', 'VA', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Lakes Resort & Spa', 'westgate-lakes-resort-and-spa', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Orlando', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, true, false, false, true, null, null, false),
+('Westgate Las Vegas Resort & Casino', 'westgate-las-vegas-resort-and-casino', 'Vegas', 'Westgate', 'Vegas', '', 'Las Vegas', 'NV', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Leisure Resort', 'westgate-leisure-resort', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Kissimmee', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, true, null, null, false),
+('Westgate Myrtle Beach Oceanfront Resort', 'westgate-myrtle-beach-oceanfront-resort', 'Beach & Coast', 'Westgate', 'Beach', '', 'Myrtle Beach', 'SC', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, true, false, false, null, null, false),
+('Harbour Beach Resort', 'harbour-beach-resort', 'Beach & Coast', 'Other', 'Beach', '', 'Daytona Beach', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, true, false, false, null, null, false),
+('River Terrace Resort and Convention Center', 'river-terrace-resort-and-convention-center', 'Outdoor / Mountains', 'Other', 'Mountains', '', 'Gatlinburg', 'TN', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Blue Tree Resort', 'westgate-blue-tree-resort', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Orlando', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, true, null, null, false),
+('Westgate Branson Lakes Resort', 'westgate-branson-lakes-resort', 'Outdoor / Mountains', 'Westgate', 'Mountains', '', 'Branson', 'MO', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Branson Woods Resort', 'westgate-branson-woods-resort', 'Outdoor / Mountains', 'Westgate', 'Mountains', '', 'Branson', 'MO', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Cocoa Beach Resort', 'westgate-cocoa-beach-resort', 'Beach & Coast', 'Westgate', 'Beach', '', 'Cocoa Beach', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, true, false, false, null, null, false),
+('Westgate Painted Mountain Golf Resort', 'westgate-painted-mountain-golf-resort', 'Outdoor / Mountains', 'Westgate', 'Mountains', '', 'Mesa', 'AZ', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate Palace', 'westgate-palace', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Orlando', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, true, null, null, false),
+('Westgate Park City Resort & Spa', 'westgate-park-city-resort-and-spa', 'Outdoor / Mountains', 'Westgate', 'Mountains', '', 'Park City', 'UT', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, false, null, null, false),
+('Westgate River Ranch Resort & Rodeo', 'westgate-river-ranch-resort-and-rodeo', 'Outdoor / Ranch', 'Westgate', 'Ranch', '', 'River Ranch', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, true, false, null, null, false),
+('Westgate Smoky Mountain Resort & Water Park', 'westgate-smoky-mountain-resort-and-water-park', 'Outdoor / Mountains', 'Westgate', 'Mountains', '', 'Gatlinburg', 'TN', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, true, false, false, false, null, null, false),
+('Westgate Towers Resort', 'westgate-towers-resort', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Kissimmee', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, true, null, null, false),
+('Westgate Town Center Resort', 'westgate-town-center-resort', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Kissimmee', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, true, false, false, true, null, null, false),
+('Westgate Vacation Villas Resort', 'westgate-vacation-villas-resort', 'Orlando/Kissimmee', 'Westgate', 'Orlando', '', 'Kissimmee', 'FL', '', 'US', 'Inventory placeholder for internal setup.', null, null, '[]'::jsonb, null, '[]'::jsonb, false, false, false, true, null, null, false)
+on conflict (slug) do nothing;
+
 with target as (
   select id, slug
   from public.resorts

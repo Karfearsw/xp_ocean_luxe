@@ -3,7 +3,10 @@ import { dateField, emailField, failure, isRecord, numberField, stringField, uui
 
 export interface BookingDraft {
   resort_id: string;
+  room_type_id?: string | null;
   package_id: string;
+  car_type_id?: string | null;
+  concierge_service_id?: string | null;
   guest_name: string;
   guest_email: string;
   guest_phone: string;
@@ -12,6 +15,8 @@ export interface BookingDraft {
   check_in_date: string;
   check_out_date: string;
   nights: number;
+  guests_adults?: number;
+  guests_children?: number;
 }
 
 export interface BookingRecord extends BookingDraft {
@@ -23,6 +28,9 @@ export interface BookingRecord extends BookingDraft {
   booking_status: BookingStatus;
   stripe_payment_intent_id?: string | null;
   provider_confirmation_number?: string | null;
+  total_price?: number;
+  deposit_amount?: number;
+  balance_due?: number;
   created_at: string;
 }
 
@@ -40,6 +48,18 @@ export const bookingDraftSchema = {
     const payload: BookingDraft = {
       resort_id: uuidField(value.resort_id, "resort_id", errors) ?? "",
       package_id: uuidField(value.package_id, "package_id", errors) ?? "",
+      room_type_id:
+        value.room_type_id == null || value.room_type_id === ""
+          ? null
+          : uuidField(value.room_type_id, "room_type_id", errors) ?? null,
+      car_type_id:
+        value.car_type_id == null || value.car_type_id === ""
+          ? null
+          : uuidField(value.car_type_id, "car_type_id", errors) ?? null,
+      concierge_service_id:
+        value.concierge_service_id == null || value.concierge_service_id === ""
+          ? null
+          : uuidField(value.concierge_service_id, "concierge_service_id", errors) ?? null,
       guest_name: stringField(value.guest_name, "guest_name", 2, errors) ?? "",
       guest_email: emailField(value.guest_email, "guest_email", errors) ?? "",
       guest_phone: stringField(value.guest_phone, "guest_phone", 7, errors) ?? "",
@@ -48,9 +68,15 @@ export const bookingDraftSchema = {
       check_in_date: dateField(value.check_in_date, "check_in_date", errors) ?? "",
       check_out_date: dateField(value.check_out_date, "check_out_date", errors) ?? "",
       nights: numberField(value.nights, "nights", errors) ?? 0,
+      guests_adults: value.guests_adults == null ? 2 : numberField(value.guests_adults, "guests_adults", errors) ?? 0,
+      guests_children:
+        value.guests_children == null ? 0 : numberField(value.guests_children, "guests_children", errors) ?? 0,
     };
 
     if (payload.nights <= 0) errors.nights = ["nights must be greater than zero."];
+    if ((payload.guests_adults ?? 0) < 0) errors.guests_adults = ["guests_adults must be zero or greater."];
+    if ((payload.guests_children ?? 0) < 0) errors.guests_children = ["guests_children must be zero or greater."];
+    if ((payload.guests_adults ?? 0) + (payload.guests_children ?? 0) <= 0) errors.guests_adults = ["At least one guest is required."];
     if (payload.check_in_date && payload.check_out_date && Date.parse(payload.check_out_date) <= Date.parse(payload.check_in_date)) {
       errors.check_out_date = ["check_out_date must be after check_in_date."];
     }
@@ -87,6 +113,9 @@ export const bookingRecordSchema = {
       booking_status: bookingStatus ?? "draft",
       stripe_payment_intent_id: typeof value.stripe_payment_intent_id === "string" ? value.stripe_payment_intent_id : null,
       provider_confirmation_number: typeof value.provider_confirmation_number === "string" ? value.provider_confirmation_number : null,
+      total_price: value.total_price == null ? undefined : numberField(value.total_price, "total_price", errors) ?? undefined,
+      deposit_amount: value.deposit_amount == null ? undefined : numberField(value.deposit_amount, "deposit_amount", errors) ?? undefined,
+      balance_due: value.balance_due == null ? undefined : numberField(value.balance_due, "balance_due", errors) ?? undefined,
       created_at: dateField(value.created_at, "created_at", errors) ?? "",
     };
 
