@@ -5,6 +5,8 @@ export interface Resort {
   name: string;
   slug: string;
   destination: string;
+  brand?: string;
+  region?: string;
   address_line1: string;
   address_line2?: string | null;
   city: string;
@@ -12,10 +14,63 @@ export interface Resort {
   zip?: string | null;
   country: string;
   description: string;
+  description_short?: string | null;
+  description_long?: string | null;
   amenities: Amenity[];
   hero_image_url?: string | null;
   gallery_images: string[];
   active: boolean;
+  is_published?: boolean;
+  has_water_park?: boolean;
+  has_beach_access?: boolean;
+  is_ranch?: boolean;
+  is_orlando_concierge_supported?: boolean;
+  min_nightly_rate?: number | null;
+  max_nightly_rate?: number | null;
+}
+
+export interface RoomType {
+  id: string;
+  resort_id: string;
+  name: string;
+  max_occupancy: number;
+  bed_config?: string | null;
+  kitchen_type?: string | null;
+  bath_features?: string | null;
+  has_balcony_or_patio?: boolean;
+  has_washer_dryer?: boolean;
+  internal_code?: string | null;
+  base_owner_cost_per_night?: number;
+  default_markup_percent?: number;
+  is_active?: boolean;
+}
+
+export interface CarType {
+  id: string;
+  slug: string;
+  name: string;
+  brand?: string | null;
+  category: string;
+  seats?: number | null;
+  range_estimate_miles?: number | null;
+  luggage_capacity_notes?: string | null;
+  is_active: boolean;
+  base_daily_rate: number;
+  default_markup_percent: number;
+  cleaning_fee: number;
+  delivery_fee_orlando: number;
+}
+
+export interface ConciergeService {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  is_orlando_only: boolean;
+  base_fee: number;
+  per_hour_rate: number;
+  max_party_size?: number | null;
+  requires_car_type_id?: string | null;
 }
 
 export interface ResortPackage {
@@ -48,7 +103,10 @@ export interface AvailabilityBlock {
 
 export interface BookingDraft {
   resort_id: string;
+  room_type_id?: string | null;
   package_id: string;
+  car_type_id?: string | null;
+  concierge_service_id?: string | null;
   guest_name: string;
   guest_email: string;
   guest_phone: string;
@@ -57,6 +115,8 @@ export interface BookingDraft {
   check_in_date: string;
   check_out_date: string;
   nights: number;
+  guests_adults?: number;
+  guests_children?: number;
 }
 
 export interface BookingRecord extends BookingDraft {

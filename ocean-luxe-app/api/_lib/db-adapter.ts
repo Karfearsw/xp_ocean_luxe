@@ -16,6 +16,10 @@ type SyncJobPatch = {
 export interface DbAdapter {
   getActiveResorts(destination?: string): Promise<any[]>;
   getResortWithPackages(slug: string): Promise<{ resort: any; packages: any[] } | null>;
+  getResortPublicDetail(
+    slug: string
+  ): Promise<{ resort: any; packages: any[]; room_types: any[]; amenities: any[]; media_assets: any[] } | null>;
+  isRoomTypeForResort(roomTypeId: string, resortId: string): Promise<boolean>;
   searchAvailableBlocks(filters: { resortId?: string; startDate?: string; endDate?: string }): Promise<any[]>;
   getBookingById(bookingId: string): Promise<any | null>;
   getPackagePricing(packageId: string): Promise<any | null>;
@@ -28,6 +32,13 @@ export interface DbAdapter {
   lockAvailability(packageId: string, startDate: string, endDate: string): Promise<boolean>;
   upsertCustomer(payload: { email: string; full_name: string; phone: string }): Promise<any | null>;
   createBooking(payload: Record<string, unknown>): Promise<any | null>;
+  upsertPayment(payload: {
+    booking_id: string;
+    stripe_payment_intent_id?: string | null;
+    amount: number;
+    status: string;
+    paid_at?: string | null;
+  }): Promise<void>;
 }
 
 function buildUpdatePatch(patch: Record<string, QueryValue>, allowed: string[]) {
@@ -68,7 +79,7 @@ export function getDbAdapter(): DbAdapter | null {
       await ensureDbReady();
       const pool = getPool();
       const params: any[] = [];
-      let where = `where active = true`;
+      let where = `where active = true and is_published = true`;
       if (destination) {
         params.push(destination);
         where += ` and destination = $${params.length}`;
@@ -89,6 +100,48 @@ export function getDbAdapter(): DbAdapter | null {
       return { resort, packages: packagesResult.rows };
     },
 
+    async getResortPublicDetail(slug) {
+      await ensureDbReady();
+      const pool = getPool();
+      const resortResult = await pool.query(
+        `select * from resorts where slug = $1 and active = true and is_published = true limit 1`,
+        [slug]
+      );
+      const resort = resortResult.rows[0];
+      if (!resort) return null;
+      const [packagesResult, roomTypesResult, amenitiesResult, mediaResult] = await Promise.all([
+        pool.query(`select * from packages where resort_id = $1 and active = true order by public_price asc`, [resort.id]),
+        pool.query(
+          `select * from room_types where resort_id = $1 and is_active = true order by max_occupancy asc, name asc`,
+          [resort.id]
+        ),
+        pool.query(
+          `select * from resort_amenities where resort_id = $1 order by category asc, sort_order asc, label asc`,
+          [resort.id]
+        ),
+        pool.query(
+          `select * from media_assets where resort_id = $1 order by is_primary desc, sort_order asc, created_at asc`,
+          [resort.id]
+        ),
+      ]);
+      return {
+        resort,
+        packages: packagesResult.rows,
+        room_types: roomTypesResult.rows,
+        amenities: amenitiesResult.rows,
+        media_assets: mediaResult.rows,
+      };
+    },
+
+    async isRoomTypeForResort(roomTypeId, resortId) {
+      await ensureDbReady();
+      const pool = getPool();
+      const { rowCount } = await pool.query(
+        `select 1 from room_types where id = $1 and resort_id = $2 and is_active = true limit 1`,
+        [roomTypeId, resortId]
+      );
+      return rowCount > 0;
+    },
     async searchAvailableBlocks(filters) {
       await ensureDbReady();
       const pool = getPool();
@@ -138,6 +191,9 @@ export function getDbAdapter(): DbAdapter | null {
         "crm_sync_status",
         "email_status",
         "provider_confirmation_number",
+        "total_price",
+        "deposit_amount",
+        "balance_due",
       ]);
       if (!update) return this.getBookingById(bookingId);
       const { rows } = await pool.query(
@@ -263,6 +319,24 @@ export function getDbAdapter(): DbAdapter | null {
       const sqlCols = cols.map((name) => `"${name}"`).join(", ");
       const { rows } = await pool.query(`insert into bookings (${sqlCols}) values (${placeholders}) returning *`, vals);
       return rows[0] ?? null;
+    },
+
+    async upsertPayment(payload) {
+      await ensureDbReady();
+      const pool = getPool();
+      await pool.query(
+        `insert into payments (booking_id, stripe_payment_intent_id, amount, status, paid_at)
+         values ($1, $2, $3, $4, $5)
+         on conflict (stripe_payment_intent_id)
+         do update set amount = excluded.amount, status = excluded.status, paid_at = excluded.paid_at, updated_at = now()`,
+        [
+          payload.booking_id,
+          payload.stripe_payment_intent_id ?? null,
+          payload.amount,
+          payload.status,
+          payload.paid_at ?? null,
+        ]
+      );
     },
   };
 }

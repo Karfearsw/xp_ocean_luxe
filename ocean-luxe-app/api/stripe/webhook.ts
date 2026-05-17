@@ -75,6 +75,17 @@ async function handler(req: ApiRequest, res: ApiResponse) {
   if (event.type === "payment_intent.succeeded") {
     const intent = event.data.object;
     const bookingId = intent.metadata.bookingId;
+    const paidAmount = typeof intent.amount_received === "number" && intent.amount_received > 0
+      ? intent.amount_received / 100
+      : intent.amount / 100;
+
+    await db.upsertPayment({
+      booking_id: bookingId,
+      stripe_payment_intent_id: intent.id,
+      amount: paidAmount,
+      status: "succeeded",
+      paid_at: new Date().toISOString(),
+    });
     const booking = await db.markBooking(bookingId, {
       payment_status: "paid",
       booking_status: "confirmed",
@@ -97,6 +108,13 @@ async function handler(req: ApiRequest, res: ApiResponse) {
   if (event.type === "payment_intent.payment_failed") {
     const intent = event.data.object;
     const bookingId = intent.metadata.bookingId;
+    await db.upsertPayment({
+      booking_id: bookingId,
+      stripe_payment_intent_id: intent.id,
+      amount: intent.amount / 100,
+      status: "failed",
+      paid_at: null,
+    });
     const booking = await db.markBooking(bookingId, {
       payment_status: "failed",
       booking_status: "pending_payment",
@@ -116,6 +134,15 @@ async function handler(req: ApiRequest, res: ApiResponse) {
     const charge = event.data.object;
     const bookingId = charge.metadata?.bookingId;
     if (bookingId) {
+      const chargeMeta = charge as unknown as { payment_intent?: unknown };
+      const intentId = typeof chargeMeta.payment_intent === "string" ? chargeMeta.payment_intent : null;
+      await db.upsertPayment({
+        booking_id: bookingId,
+        stripe_payment_intent_id: intentId,
+        amount: (charge.amount_refunded ?? charge.amount ?? 0) / 100,
+        status: "refunded",
+        paid_at: new Date().toISOString(),
+      });
       const booking = await db.markBooking(bookingId, {
         payment_status: "refunded",
         booking_status: "refunded",

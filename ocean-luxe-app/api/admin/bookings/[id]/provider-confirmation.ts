@@ -2,8 +2,9 @@ import { buildCrmPayload } from "../../../_lib/crm-sync.js";
 import { getDbAdapter } from "../../../_lib/db-adapter.js";
 import { finalItineraryEmail } from "../../../_lib/email-templates/final-itinerary.js";
 import type { ApiRequest, ApiResponse } from "../../../_lib/http.js";
-import { isAdminAuthorized } from "../../../_lib/admin-auth.js";
+import { requireAdmin } from "../../../_lib/admin-session.js";
 import { getResend } from "../../../_lib/resend.js";
+import { withErrorHandling } from "../../../_lib/handler.js";
 
 async function sendEmail(to: string, content: { subject: string; html: string }) {
   const resend = getResend();
@@ -16,14 +17,10 @@ async function sendEmail(to: string, content: { subject: string; html: string })
   });
 }
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
+async function handler(req: ApiRequest, res: ApiResponse) {
+  requireAdmin(req);
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method not allowed" });
-    return;
-  }
-
-  if (!isAdminAuthorized(req)) {
-    res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
@@ -80,3 +77,5 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   res.status(200).json({ ok: true, booking });
 }
+
+export default withErrorHandling(handler);

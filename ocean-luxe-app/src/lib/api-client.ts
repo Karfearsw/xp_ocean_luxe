@@ -1,4 +1,5 @@
 import type { BookingDraft, BookingRecord, CreateIntentResponse, Resort, ResortPackage } from "../types";
+import type { CarType, ConciergeService, RoomType } from "../types";
 
 const fallbackResorts: Resort[] = [
   {
@@ -86,6 +87,11 @@ export async function fetchResortBySlug(slug: string): Promise<{ resort: Resort;
   }
 }
 
+export async function fetchResortPublicDetail(slug: string): Promise<ResortPublicDetailResponse> {
+  const response = await fetch(`/api/resorts/${slug}`);
+  return readJson<ResortPublicDetailResponse>(response);
+}
+
 export async function createBookingDraft(payload: BookingDraft): Promise<BookingRecord> {
   const response = await fetch(`/api/bookings/create-draft`, {
     method: "POST",
@@ -104,4 +110,108 @@ export async function createPaymentIntent(bookingId: string): Promise<CreateInte
   });
 
   return readJson<CreateIntentResponse>(response);
+}
+
+export type DestinationsResponse = {
+  regions: Array<{
+    region: string;
+    resorts: Array<{
+      id: string;
+      slug: string;
+      name: string;
+      city: string;
+      state: string | null;
+      country: string;
+      destination: string;
+      region: string;
+      hero_image_url: string | null;
+      min_nightly_rate: number | null;
+      max_nightly_rate: number | null;
+      has_water_park: boolean;
+      has_beach_access: boolean;
+      is_ranch: boolean;
+      is_orlando_concierge_supported: boolean;
+    }>;
+  }>;
+};
+
+export async function fetchDestinations(): Promise<DestinationsResponse> {
+  const response = await fetch(`/api/destinations`);
+  return readJson<DestinationsResponse>(response);
+}
+
+export type ResortPublicDetailResponse = {
+  resort: Resort;
+  packages: ResortPackage[];
+  room_types: RoomType[];
+  amenities: Array<{ id: string; category: string; label: string; details?: string | null }>;
+  media_assets: Array<{ id: string; file_url: string; alt_text?: string | null; caption?: string | null; is_primary?: boolean }>;
+};
+
+export type BookSearchResult = {
+  resort_id: string;
+  resort_slug: string;
+  resort_name: string;
+  city: string;
+  state: string | null;
+  country: string;
+  region: string;
+  destination: string;
+  hero_image_url: string | null;
+  room_type_id: string;
+  room_type_name: string;
+  max_occupancy: number;
+  package_id: string;
+  package_name: string;
+  payment_mode: "full" | "deposit";
+  deposit_amount: number | null;
+  public_price: number;
+  guest_certificate_fee: number;
+  markup_amount: number;
+};
+
+export async function searchBookOptions(params: {
+  startDate: string;
+  endDate: string;
+  guests?: number;
+  region?: string;
+  resort?: string;
+}) {
+  const query = new URLSearchParams();
+  query.set("startDate", params.startDate);
+  query.set("endDate", params.endDate);
+  if (params.guests != null) query.set("guests", String(params.guests));
+  if (params.region) query.set("region", params.region);
+  if (params.resort) query.set("resort", params.resort);
+  const response = await fetch(`/api/book/search?${query.toString()}`);
+  return readJson<{ results: BookSearchResult[] }>(response);
+}
+
+export async function adminLogin(password: string) {
+  const response = await fetch(`/api/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  return readJson<{ ok: true }>(response);
+}
+
+export async function adminMe() {
+  const response = await fetch(`/api/admin/me`);
+  return readJson<{ authenticated: boolean }>(response);
+}
+
+export async function adminListResorts() {
+  const response = await fetch(`/api/admin/resorts`);
+  return readJson<Resort[]>(response);
+}
+
+export async function adminListCars() {
+  const response = await fetch(`/api/admin/cars`);
+  return readJson<CarType[]>(response);
+}
+
+export async function adminListConcierge() {
+  const response = await fetch(`/api/admin/concierge`);
+  return readJson<ConciergeService[]>(response);
 }
