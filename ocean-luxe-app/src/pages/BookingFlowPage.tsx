@@ -74,6 +74,7 @@ export default function BookingFlowPage() {
       const booking = await createBookingDraft({
         resort_id: resort.id,
         package_id: selectedPackage.id,
+        concierge_service_ids: [],
         guest_name: form.guest_name,
         guest_email: form.guest_email,
         guest_phone: form.guest_phone,

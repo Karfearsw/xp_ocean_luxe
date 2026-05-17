@@ -1,11 +1,21 @@
 import { bookingConfirmationEmail } from "../_lib/email-templates/booking-confirmation.js";
+import { adminAlertEmail } from "../_lib/email-templates/admin-alert.js";
+import { createOpaqueToken, hashOpaqueToken } from "../_lib/customer-tokens.js";
 import { paymentFailedEmail } from "../_lib/email-templates/payment-failed.js";
 import { buildCrmPayload } from "../_lib/crm-sync.js";
 import { getDbAdapter } from "../_lib/db-adapter.js";
 import type { ApiRequest, ApiResponse } from "../_lib/http.js";
+import { getPool } from "../_lib/neon-db.js";
+import { resolvePublicOrigin } from "../_lib/public-origin.js";
 import { getResend } from "../_lib/resend.js";
 import { getStripe } from "../_lib/stripe.js";
 import { withErrorHandling } from "../_lib/handler.js";
+
+function getBookingIdFromMetadata(metadata: Record<string, unknown> | null | undefined) {
+  if (!metadata) return null;
+  const raw = metadata.booking_id ?? metadata.bookingId;
+  return typeof raw === "string" && raw.length ? raw : null;
+}
 
 function getRawBody(body: unknown) {
   if (typeof body === "string" || body instanceof Buffer) {
@@ -72,9 +82,18 @@ async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
+  if (duplicateError === "duplicate") {
+    res.status(200).json({ received: true, duplicate: true });
+    return;
+  }
+
   if (event.type === "payment_intent.succeeded") {
     const intent = event.data.object;
-    const bookingId = intent.metadata.bookingId;
+    const bookingId = getBookingIdFromMetadata(intent.metadata);
+    if (!bookingId) {
+      res.status(200).json({ received: true });
+      return;
+    }
     const paidAmount = typeof intent.amount_received === "number" && intent.amount_received > 0
       ? intent.amount_received / 100
       : intent.amount / 100;
@@ -86,6 +105,21 @@ async function handler(req: ApiRequest, res: ApiResponse) {
       status: "succeeded",
       paid_at: new Date().toISOString(),
     });
+
+    const current = await db.getBookingById(bookingId);
+    if (!current || current.booking_status === "refunded" || current.booking_status === "cancelled") {
+      res.status(200).json({ received: true });
+      return;
+    }
+
+    const availabilityBlockId = typeof (current as Record<string, unknown>).availability_block_id === "string"
+      ? ((current as Record<string, unknown>).availability_block_id as string)
+      : null;
+    let inventoryBooked = true;
+    if (availabilityBlockId) {
+      inventoryBooked = await db.markAvailabilityBlockBooked(availabilityBlockId);
+    }
+
     const booking = await db.markBooking(bookingId, {
       payment_status: "paid",
       booking_status: "confirmed",
@@ -95,19 +129,54 @@ async function handler(req: ApiRequest, res: ApiResponse) {
     });
 
     if (booking) {
+      if (!inventoryBooked) {
+        const adminEmail = process.env.ADMIN_ALERT_EMAIL || process.env.RESEND_FROM_EMAIL;
+        if (adminEmail) {
+          await sendEmail(adminEmail, adminAlertEmail(booking.id));
+        }
+      }
       const crmPayload = buildCrmPayload({ ...booking, event_type: "booking_paid" });
       await db.enqueueCrmJobs([
         { booking_id: booking.id, destination: "crm_rest", payload: crmPayload },
         { booking_id: booking.id, destination: "discord", payload: crmPayload },
       ]);
 
-      await sendEmail(booking.guest_email, bookingConfirmationEmail(booking.id, booking.guest_name));
+      const origin = resolvePublicOrigin(req);
+      const fallbackPortal = origin ? `${origin}/account/login` : null;
+      let portalLink: string | null = fallbackPortal;
+
+      const customerId = typeof booking.customer_id === "string" ? booking.customer_id : null;
+      if (origin && customerId) {
+        const pool = getPool();
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          const token = createOpaqueToken();
+          const hash = hashOpaqueToken(token);
+          try {
+            await pool.query(
+              `insert into customer_magic_links (customer_id, token_hash, redirect_path, expires_at)
+               values ($1, $2, $3, now() + interval '7 days')`,
+              [customerId, hash, "/account/bookings"]
+            );
+            portalLink = `${origin}/account/magic?token=${encodeURIComponent(token)}`;
+            break;
+          } catch (error) {
+            const code = error && typeof error === "object" && "code" in error ? (error as { code?: string }).code : null;
+            if (code !== "23505") break;
+          }
+        }
+      }
+
+      await sendEmail(booking.guest_email, bookingConfirmationEmail(booking.id, booking.guest_name, portalLink));
     }
   }
 
   if (event.type === "payment_intent.payment_failed") {
     const intent = event.data.object;
-    const bookingId = intent.metadata.bookingId;
+    const bookingId = getBookingIdFromMetadata(intent.metadata);
+    if (!bookingId) {
+      res.status(200).json({ received: true });
+      return;
+    }
     await db.upsertPayment({
       booking_id: bookingId,
       stripe_payment_intent_id: intent.id,
@@ -115,6 +184,13 @@ async function handler(req: ApiRequest, res: ApiResponse) {
       status: "failed",
       paid_at: null,
     });
+
+    const current = await db.getBookingById(bookingId);
+    if (!current || current.booking_status === "refunded" || current.booking_status === "cancelled") {
+      res.status(200).json({ received: true });
+      return;
+    }
+
     const booking = await db.markBooking(bookingId, {
       payment_status: "failed",
       booking_status: "pending_payment",
@@ -132,28 +208,41 @@ async function handler(req: ApiRequest, res: ApiResponse) {
 
   if (event.type === "charge.refunded") {
     const charge = event.data.object;
-    const bookingId = charge.metadata?.bookingId;
-    if (bookingId) {
-      const chargeMeta = charge as unknown as { payment_intent?: unknown };
-      const intentId = typeof chargeMeta.payment_intent === "string" ? chargeMeta.payment_intent : null;
-      await db.upsertPayment({
-        booking_id: bookingId,
-        stripe_payment_intent_id: intentId,
-        amount: (charge.amount_refunded ?? charge.amount ?? 0) / 100,
-        status: "refunded",
-        paid_at: new Date().toISOString(),
-      });
-      const booking = await db.markBooking(bookingId, {
-        payment_status: "refunded",
-        booking_status: "refunded",
-        crm_sync_status: "pending",
-      });
-      if (booking) {
-        const crmPayload = buildCrmPayload({ ...booking, event_type: "booking_refunded" });
-        await db.enqueueCrmJobs([
-          { booking_id: booking.id, destination: "crm_rest", payload: crmPayload },
-        ]);
+    const chargeMeta = charge as unknown as { payment_intent?: unknown; metadata?: Record<string, unknown> };
+    const intentId = typeof chargeMeta.payment_intent === "string" ? chargeMeta.payment_intent : null;
+
+    let bookingId = getBookingIdFromMetadata(chargeMeta.metadata);
+    if (!bookingId && intentId) {
+      try {
+        const intent = await stripe.paymentIntents.retrieve(intentId);
+        bookingId = getBookingIdFromMetadata(intent.metadata);
+      } catch {
+        bookingId = null;
       }
+    }
+
+    if (!bookingId) {
+      res.status(200).json({ received: true });
+      return;
+    }
+
+    await db.upsertPayment({
+      booking_id: bookingId,
+      stripe_payment_intent_id: intentId,
+      amount: (charge.amount_refunded ?? charge.amount ?? 0) / 100,
+      status: "refunded",
+      paid_at: new Date().toISOString(),
+    });
+    const booking = await db.markBooking(bookingId, {
+      payment_status: "refunded",
+      booking_status: "refunded",
+      crm_sync_status: "pending",
+    });
+    if (booking) {
+      const crmPayload = buildCrmPayload({ ...booking, event_type: "booking_refunded" });
+      await db.enqueueCrmJobs([
+        { booking_id: booking.id, destination: "crm_rest", payload: crmPayload },
+      ]);
     }
   }
 

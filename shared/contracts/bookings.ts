@@ -1,5 +1,5 @@
 import { bookingStatuses, paymentStatuses, type BookingStatus, type PaymentStatus } from "./enums";
-import { dateField, emailField, failure, isRecord, numberField, stringField, uuidField, success, type ValidationResult } from "./_validation";
+import { dateField, emailField, failure, isRecord, numberField, stringArrayField, stringField, uuidField, success, type ValidationResult } from "./_validation";
 
 export interface BookingDraft {
   resort_id: string;
@@ -7,6 +7,7 @@ export interface BookingDraft {
   package_id: string;
   car_type_id?: string | null;
   concierge_service_id?: string | null;
+  concierge_service_ids: string[];
   guest_name: string;
   guest_email: string;
   guest_phone: string;
@@ -30,6 +31,7 @@ export interface BookingRecord extends BookingDraft {
   provider_confirmation_number?: string | null;
   total_price?: number;
   deposit_amount?: number;
+  due_now?: number;
   balance_due?: number;
   created_at: string;
 }
@@ -45,6 +47,24 @@ export const bookingDraftSchema = {
   safeParse(value: unknown): ValidationResult<BookingDraft> {
     if (!isRecord(value)) return failure({ form: ["Invalid booking payload."] });
     const errors: Record<string, string[]> = {};
+    const concierge_service_id =
+      value.concierge_service_id == null || value.concierge_service_id === ""
+        ? null
+        : uuidField(value.concierge_service_id, "concierge_service_id", errors) ?? null;
+    const concierge_service_ids = (() => {
+      const parsed = stringArrayField(value.concierge_service_ids, "concierge_service_ids", errors);
+      const list = parsed ? parsed : [];
+      if (concierge_service_id) list.push(concierge_service_id);
+      const unique = Array.from(new Set(list.filter((id) => typeof id === "string" && id.trim().length)));
+      const validated: string[] = [];
+      unique.forEach((entry, idx) => {
+        const field = `concierge_service_ids.${idx}`;
+        const uuid = uuidField(entry, field, errors);
+        if (uuid) validated.push(uuid);
+      });
+      return validated;
+    })();
+
     const payload: BookingDraft = {
       resort_id: uuidField(value.resort_id, "resort_id", errors) ?? "",
       package_id: uuidField(value.package_id, "package_id", errors) ?? "",
@@ -56,10 +76,8 @@ export const bookingDraftSchema = {
         value.car_type_id == null || value.car_type_id === ""
           ? null
           : uuidField(value.car_type_id, "car_type_id", errors) ?? null,
-      concierge_service_id:
-        value.concierge_service_id == null || value.concierge_service_id === ""
-          ? null
-          : uuidField(value.concierge_service_id, "concierge_service_id", errors) ?? null,
+      concierge_service_id: concierge_service_ids[0] ?? null,
+      concierge_service_ids,
       guest_name: stringField(value.guest_name, "guest_name", 2, errors) ?? "",
       guest_email: emailField(value.guest_email, "guest_email", errors) ?? "",
       guest_phone: stringField(value.guest_phone, "guest_phone", 7, errors) ?? "",
@@ -115,6 +133,7 @@ export const bookingRecordSchema = {
       provider_confirmation_number: typeof value.provider_confirmation_number === "string" ? value.provider_confirmation_number : null,
       total_price: value.total_price == null ? undefined : numberField(value.total_price, "total_price", errors) ?? undefined,
       deposit_amount: value.deposit_amount == null ? undefined : numberField(value.deposit_amount, "deposit_amount", errors) ?? undefined,
+      due_now: value.due_now == null ? undefined : numberField(value.due_now, "due_now", errors) ?? undefined,
       balance_due: value.balance_due == null ? undefined : numberField(value.balance_due, "balance_due", errors) ?? undefined,
       created_at: dateField(value.created_at, "created_at", errors) ?? "",
     };

@@ -107,6 +107,7 @@ export interface BookingDraft {
   package_id: string;
   car_type_id?: string | null;
   concierge_service_id?: string | null;
+  concierge_service_ids: string[];
   guest_name: string;
   guest_email: string;
   guest_phone: string;
@@ -128,6 +129,12 @@ export interface BookingRecord extends BookingDraft {
   booking_status: string;
   stripe_payment_intent_id?: string | null;
   provider_confirmation_number?: string | null;
+  total_price?: number;
+  deposit_amount?: number;
+  due_now?: number;
+  balance_due?: number;
+  car_total?: number;
+  concierge_total?: number;
   created_at: string;
 }
 

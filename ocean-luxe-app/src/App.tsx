@@ -2,6 +2,10 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import SiteLayout from "./components/SiteLayout";
 import Home from "./pages/Home";
 import BookingConfirmationPage from "./pages/BookingConfirmationPage";
+import CreateAccountPage from "./pages/CreateAccountPage";
+import AccountLoginPage from "./pages/AccountLoginPage";
+import AccountMagicPage from "./pages/AccountMagicPage";
+import MyBookingsPage from "./pages/MyBookingsPage";
 import PoliciesPage from "./pages/PoliciesPage";
 import DestinationsPage from "./pages/DestinationsPage";
 import ResortPublicPage from "./pages/ResortPublicPage";
@@ -43,6 +47,10 @@ export default function App() {
         <Route path="/admin/resorts" element={<AdminResortsPage />} />
         <Route path="/admin/cars" element={<AdminCarsPage />} />
         <Route path="/admin/concierge" element={<AdminConciergePage />} />
+        <Route path="/account/create" element={<CreateAccountPage />} />
+        <Route path="/account/login" element={<AccountLoginPage />} />
+        <Route path="/account/magic" element={<AccountMagicPage />} />
+        <Route path="/account/bookings" element={<MyBookingsPage />} />
 
         <Route path="/resorts" element={<Navigate to="/destinations" replace />} />
         <Route path="/resorts/:slug" element={<LegacyResortRedirect />} />

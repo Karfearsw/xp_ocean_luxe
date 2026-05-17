@@ -112,6 +112,41 @@ export async function createPaymentIntent(bookingId: string): Promise<CreateInte
   return readJson<CreateIntentResponse>(response);
 }
 
+export type BookingSummaryResponse = {
+  booking: {
+    id: string;
+    resort_id: string;
+    resort_name: string | null;
+    package_id: string;
+    package_name: string | null;
+    room_type_id: string | null;
+    room_type_name: string | null;
+    check_in_date: string;
+    check_out_date: string;
+    nights: number;
+    car_type_id: string | null;
+    car_name: string | null;
+    payment_status: string;
+    booking_status: string;
+    total_price: number;
+    due_now: number;
+    balance_due: number;
+    car_total: number;
+    concierge_total: number;
+  };
+  concierge_services: Array<{
+    concierge_service_id: string;
+    service_name: string;
+    base_fee: number;
+    per_hour_rate: number;
+  }>;
+};
+
+export async function fetchBookingSummary(bookingId: string) {
+  const response = await fetch(`/api/bookings/${encodeURIComponent(bookingId)}`);
+  return readJson<BookingSummaryResponse>(response);
+}
+
 export type DestinationsResponse = {
   regions: Array<{
     region: string;
@@ -231,4 +266,49 @@ export async function fetchConciergeServices(params?: { orlandoOnly?: boolean })
   const suffix = query.toString() ? `?${query.toString()}` : "";
   const response = await fetch(`/api/concierge${suffix}`);
   return readJson<{ services: ConciergeService[] }>(response);
+}
+
+export async function requestCustomerMagicLink(email: string, redirectPath?: string) {
+  const response = await fetch(`/api/customer/magic-link/request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, redirectPath }),
+  });
+  return readJson<{ ok: true }>(response);
+}
+
+export async function consumeCustomerMagicLink(token: string) {
+  const response = await fetch(`/api/customer/magic-link/consume`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  return readJson<{ ok: true; redirectPath: string }>(response);
+}
+
+export type CustomerBookingRow = {
+  id: string;
+  booking_status: string;
+  payment_status: string;
+  check_in_date: string;
+  check_out_date: string;
+  nights: number;
+  total_price: number;
+  resort_name: string | null;
+  package_name: string | null;
+};
+
+export async function fetchCustomerBookings() {
+  const response = await fetch(`/api/customer/bookings`);
+  if (response.status === 401) {
+    const err = new Error("Unauthorized") as Error & { status?: number };
+    err.status = 401;
+    throw err;
+  }
+  return readJson<{ bookings: CustomerBookingRow[] }>(response);
+}
+
+export async function customerLogout() {
+  const response = await fetch(`/api/customer/logout`, { method: "POST" });
+  return readJson<{ ok: true }>(response);
 }

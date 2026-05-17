@@ -19,19 +19,29 @@ export interface DbAdapter {
   getResortPublicDetail(
     slug: string
   ): Promise<{ resort: any; packages: any[]; room_types: any[]; amenities: any[]; media_assets: any[] } | null>;
+  getResortOrlandoSupport(resortId: string): Promise<boolean | null>;
   isRoomTypeForResort(roomTypeId: string, resortId: string): Promise<boolean>;
   searchAvailableBlocks(filters: { resortId?: string; startDate?: string; endDate?: string }): Promise<any[]>;
   getBookingById(bookingId: string): Promise<any | null>;
   getPackagePricing(packageId: string): Promise<any | null>;
+  getCarTypeById(carTypeId: string): Promise<any | null>;
+  getConciergeServicesByIds(ids: string[]): Promise<any[]>;
+  replaceBookingConciergeServices(
+    bookingId: string,
+    items: Array<{ concierge_service_id: string; service_name: string; base_fee: number; per_hour_rate: number }>
+  ): Promise<void>;
   markBooking(bookingId: string, patch: Record<string, QueryValue>): Promise<any | null>;
   insertStripeWebhookEvent(payload: Record<string, unknown>): Promise<string | null>;
   enqueueCrmJobs(payload: Array<Record<string, unknown>>): Promise<void>;
   listPendingSyncJobs(limit: number): Promise<any[]>;
   patchSyncJob(jobId: string, patch: SyncJobPatch): Promise<void>;
   getActivePackageById(packageId: string): Promise<any | null>;
-  lockAvailability(packageId: string, startDate: string, endDate: string): Promise<boolean>;
+  lockAvailability(packageId: string, startDate: string, endDate: string, holdExpiresAt: string): Promise<string | null>;
   upsertCustomer(payload: { email: string; full_name: string; phone: string }): Promise<any | null>;
   createBooking(payload: Record<string, unknown>): Promise<any | null>;
+  getAvailabilityBlockById(blockId: string): Promise<any | null>;
+  extendAvailabilityHold(blockId: string, holdExpiresAt: string): Promise<void>;
+  markAvailabilityBlockBooked(blockId: string): Promise<boolean>;
   upsertPayment(payload: {
     booking_id: string;
     stripe_payment_intent_id?: string | null;
@@ -133,6 +143,18 @@ export function getDbAdapter(): DbAdapter | null {
       };
     },
 
+    async getResortOrlandoSupport(resortId) {
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(
+        `select is_orlando_concierge_supported from resorts where id = $1 and active = true limit 1`,
+        [resortId]
+      );
+      const value = rows[0]?.is_orlando_concierge_supported;
+      if (typeof value !== "boolean") return null;
+      return value;
+    },
+
     async isRoomTypeForResort(roomTypeId, resortId) {
       await ensureDbReady();
       const pool = getPool();
@@ -167,7 +189,24 @@ export function getDbAdapter(): DbAdapter | null {
     async getBookingById(bookingId) {
       await ensureDbReady();
       const pool = getPool();
-      const { rows } = await pool.query(`select * from bookings where id = $1 limit 1`, [bookingId]);
+      const { rows } = await pool.query(
+        `select
+           b.*,
+           coalesce(
+             (select array_agg(concierge_service_id order by service_name asc)
+              from booking_concierge_services
+              where booking_id = b.id),
+             '{}'::uuid[]
+           ) as concierge_service_ids,
+           coalesce(
+             (select sum(base_fee) from booking_concierge_services where booking_id = b.id),
+             0
+           ) as concierge_services_base_total
+         from bookings b
+         where b.id = $1
+         limit 1`,
+        [bookingId]
+      );
       return rows[0] ?? null;
     },
 
@@ -182,6 +221,48 @@ export function getDbAdapter(): DbAdapter | null {
       return rows[0] ?? null;
     },
 
+    async getCarTypeById(carTypeId) {
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(`select * from car_types where id = $1 and is_active = true limit 1`, [carTypeId]);
+      return rows[0] ?? null;
+    },
+
+    async getConciergeServicesByIds(ids) {
+      await ensureDbReady();
+      if (!ids.length) return [];
+      const pool = getPool();
+      const { rows } = await pool.query(`select * from concierge_services where id = any($1::uuid[]) order by name asc`, [ids]);
+      return rows;
+    },
+
+    async replaceBookingConciergeServices(bookingId, items) {
+      await ensureDbReady();
+      await withTx(async (client) => {
+        await client.query(`delete from booking_concierge_services where booking_id = $1`, [bookingId]);
+        if (!items.length) return;
+        const values: any[] = [];
+        const rowsSql = items
+          .map((item, idx) => {
+            const base = idx * 5;
+            values.push(
+              bookingId,
+              item.concierge_service_id,
+              item.service_name,
+              item.base_fee,
+              item.per_hour_rate
+            );
+            return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+          })
+          .join(", ");
+        await client.query(
+          `insert into booking_concierge_services (booking_id, concierge_service_id, service_name, base_fee, per_hour_rate)
+           values ${rowsSql}`,
+          values
+        );
+      });
+    },
+
     async markBooking(bookingId, patch) {
       await ensureDbReady();
       const pool = getPool();
@@ -194,6 +275,13 @@ export function getDbAdapter(): DbAdapter | null {
         "provider_confirmation_number",
         "total_price",
         "deposit_amount",
+        "due_now",
+        "car_total",
+        "concierge_total",
+        "car_daily_rate",
+        "car_cleaning_fee",
+        "car_delivery_fee",
+        "car_markup_percent",
         "balance_due",
       ]);
       if (!update) return this.getBookingById(bookingId);
@@ -275,7 +363,7 @@ export function getDbAdapter(): DbAdapter | null {
       return rows[0] ?? null;
     },
 
-    async lockAvailability(packageId, startDate, endDate) {
+    async lockAvailability(packageId, startDate, endDate, holdExpiresAt) {
       await ensureDbReady();
       return withTx(async (client) => {
         const { rows } = await client.query(
@@ -291,9 +379,54 @@ export function getDbAdapter(): DbAdapter | null {
           [packageId, startDate, endDate]
         );
         const block = rows[0];
-        if (!block) return false;
-        await client.query(`update availability_blocks set status = 'held', updated_at = now() where id = $1`, [block.id]);
-        return true;
+        if (!block) return null;
+
+        const { rows: currentRows } = await client.query(
+          `select id, resort_id, package_id, start_date, end_date, source_type, notes
+           from availability_blocks
+           where id = $1
+           limit 1
+           for update`,
+          [block.id]
+        );
+        const current = currentRows[0];
+        if (!current) return null;
+
+        const originalStart = String(current.start_date);
+        const originalEnd = String(current.end_date);
+        const originalSource = String(current.source_type ?? "admin");
+        const originalNotes = typeof current.notes === "string" ? current.notes : null;
+
+        await client.query(
+          `update availability_blocks
+           set start_date = $2,
+               end_date = $3,
+               status = 'held',
+               source_type = 'booking',
+               held_at = now(),
+               hold_expires_at = $4,
+               updated_at = now()
+           where id = $1`,
+          [block.id, startDate, endDate, holdExpiresAt]
+        );
+
+        if (Date.parse(originalStart) < Date.parse(startDate)) {
+          await client.query(
+            `insert into availability_blocks (resort_id, package_id, start_date, end_date, status, source_type, notes)
+             values ($1, $2, $3::date, $4::date, 'available', $5::public.block_source_type, $6)`,
+            [current.resort_id, current.package_id, originalStart, startDate, originalSource, originalNotes]
+          );
+        }
+
+        if (Date.parse(endDate) < Date.parse(originalEnd)) {
+          await client.query(
+            `insert into availability_blocks (resort_id, package_id, start_date, end_date, status, source_type, notes)
+             values ($1, $2, $3::date, $4::date, 'available', $5::public.block_source_type, $6)`,
+            [current.resort_id, current.package_id, endDate, originalEnd, originalSource, originalNotes]
+          );
+        }
+
+        return block.id as string;
       });
     },
 
@@ -320,6 +453,39 @@ export function getDbAdapter(): DbAdapter | null {
       const sqlCols = cols.map((name) => `"${name}"`).join(", ");
       const { rows } = await pool.query(`insert into bookings (${sqlCols}) values (${placeholders}) returning *`, vals);
       return rows[0] ?? null;
+    },
+
+    async getAvailabilityBlockById(blockId) {
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(`select * from availability_blocks where id = $1 limit 1`, [blockId]);
+      return rows[0] ?? null;
+    },
+
+    async extendAvailabilityHold(blockId, holdExpiresAt) {
+      await ensureDbReady();
+      const pool = getPool();
+      await pool.query(
+        `update availability_blocks
+         set hold_expires_at = $2,
+             updated_at = now()
+         where id = $1 and status = 'held'`,
+        [blockId, holdExpiresAt]
+      );
+    },
+
+    async markAvailabilityBlockBooked(blockId) {
+      await ensureDbReady();
+      const pool = getPool();
+      const { rowCount } = await pool.query(
+        `update availability_blocks
+         set status = 'booked',
+             hold_expires_at = null,
+             updated_at = now()
+         where id = $1 and status = 'held'`,
+        [blockId]
+      );
+      return rowCount > 0;
     },
 
     async upsertPayment(payload) {
