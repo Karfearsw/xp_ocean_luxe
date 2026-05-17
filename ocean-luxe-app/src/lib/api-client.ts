@@ -158,6 +158,7 @@ export type BookSearchResult = {
   region: string;
   destination: string;
   hero_image_url: string | null;
+  is_orlando_concierge_supported: boolean;
   room_type_id: string;
   room_type_name: string;
   max_occupancy: number;
@@ -214,4 +215,20 @@ export async function adminListCars() {
 export async function adminListConcierge() {
   const response = await fetch(`/api/admin/concierge`);
   return readJson<ConciergeService[]>(response);
+}
+
+export async function fetchCarTypes(params?: { orlandoOnly?: boolean }) {
+  const search = params?.orlandoOnly ? `?orlandoOnly=true` : "";
+  const response = await fetch(`/api/cars${search}`);
+  return readJson<{ cars: CarType[] }>(response);
+}
+
+export async function fetchConciergeServices(params?: { orlandoOnly?: boolean }) {
+  const query = new URLSearchParams();
+  if (params?.orlandoOnly !== undefined) {
+    query.set("orlandoOnly", String(params.orlandoOnly));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  const response = await fetch(`/api/concierge${suffix}`);
+  return readJson<{ services: ConciergeService[] }>(response);
 }

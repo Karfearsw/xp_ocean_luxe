@@ -23,7 +23,7 @@ export default function ConciergeOrlandoPage() {
         <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Concierge · Orlando</p>
         <h1 className="text-4xl font-semibold md:text-5xl">Orlando arrivals, handled.</h1>
         <p className="max-w-3xl text-slate-300">
-          Full concierge service is currently available only for Orlando/Kissimmee stays. Share your arrival details and we’ll route you into meet & greet, vehicle delivery, and on-trip support options.
+          Full concierge service is currently available only for Orlando/Kissimmee stays. Share your arrival details and we’ll route you into meet & greet, vehicle delivery, and VIP support options.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link to="/destinations" className="rounded-full border border-white/15 px-6 py-3 font-medium text-white/90 hover:bg-white/10">
@@ -41,7 +41,7 @@ export default function ConciergeOrlandoPage() {
             <div className="text-xs tracking-[0.24em] text-white/50">RECEIVED</div>
             <div className="text-2xl font-semibold">Concierge request saved.</div>
             <p className="text-sm text-slate-300">
-              For this MVP scaffold the request is saved locally. In production this will route into CRM tasks and dispatch workflows.
+              For this MVP scaffold the request is saved locally. Next iteration routes this into CRM tasks and dispatch workflows.
             </p>
             <div className="flex gap-3">
               <button
@@ -167,4 +167,3 @@ export default function ConciergeOrlandoPage() {
     </div>
   );
 }
-

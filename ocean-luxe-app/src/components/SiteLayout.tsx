@@ -2,7 +2,9 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 
 const navItems = [
   { to: "/", label: "Home" },
-  { to: "/resorts", label: "Resorts" },
+  { to: "/destinations", label: "Destinations" },
+  { to: "/packages", label: "Packages" },
+  { to: "/concierge-orlando", label: "Concierge" },
   { to: "/policies", label: "Policies" },
 ];
 
@@ -36,10 +38,10 @@ export default function SiteLayout() {
             ))}
           </nav>
           <Link
-            to="/resorts"
+            to="/book"
             className="rounded-full bg-amber-300 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-amber-200"
           >
-            Book your stay
+            Check availability
           </Link>
         </div>
       </header>
