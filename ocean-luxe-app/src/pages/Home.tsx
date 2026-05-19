@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { trustHighlights } from "../content/trust-copy";
 import { fetchDestinations, type DestinationsResponse } from "../lib/api-client";
+import { fromRateCopy } from "../lib/resort-pricing-copy";
 
 export default function Home() {
   const [destinations, setDestinations] = useState<DestinationsResponse["regions"]>([]);
@@ -103,7 +104,17 @@ export default function Home() {
                     <h3 className="mt-2 text-2xl font-semibold">{resort.name}</h3>
                     <p className="mt-2 text-sm text-slate-300">
                       {resort.city}{resort.state ? `, ${resort.state}` : ""} ·{" "}
-                      {resort.min_nightly_rate ? `From $${Number(resort.min_nightly_rate).toFixed(0)}/night` : "Pricing set in admin"}
+                      {(() => {
+                        const copy = fromRateCopy({
+                          from_rate_reference: resort.from_rate_reference ?? null,
+                          from_rate_currency: resort.from_rate_currency ?? null,
+                        });
+                        return (
+                          <span title={copy.tooltip ?? undefined}>
+                            {copy.label}
+                          </span>
+                        );
+                      })()}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-3">

@@ -13,6 +13,18 @@ function toNumber(value: unknown) {
   return Number.isFinite(num) ? num : 0;
 }
 
+function ageAtDate(dob: string, atDate: string) {
+  const birth = new Date(dob);
+  const target = new Date(atDate);
+  if (!Number.isFinite(birth.getTime()) || !Number.isFinite(target.getTime())) return null;
+  let age = target.getFullYear() - birth.getFullYear();
+  const monthDiff = target.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && target.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
 export async function createBookingDraftRecord(res: ApiResponse, body: unknown) {
   const parsed = bookingDraftSchema.safeParse(body);
   if ("error" in parsed) {
@@ -21,9 +33,12 @@ export async function createBookingDraftRecord(res: ApiResponse, body: unknown) 
 
   const db = getDbAdapter();
   const payload = parsed.data;
-  const age = Math.floor((Date.now() - Date.parse(payload.guest_dob)) / (365.25 * 24 * 60 * 60 * 1000));
-  if (age < 21) {
-    return jsonResponse(res, 400, { message: "Primary guest must be at least 21 years old at booking time." });
+  const checkInDate = payload.check_in_date;
+  const age = ageAtDate(payload.guest_dob, checkInDate);
+  const ageRule = db ? await db.getResortCheckinAgeRule(payload.resort_id) : null;
+  const effectiveMinAge = ageRule?.min_override ?? ageRule?.min_default ?? 21;
+  if (age == null || age < effectiveMinAge) {
+    return jsonResponse(res, 400, { message: `Primary guest must be at least ${effectiveMinAge} years old at check-in.` });
   }
 
   const conciergeIds = payload.concierge_service_ids ?? [];

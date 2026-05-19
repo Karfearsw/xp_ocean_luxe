@@ -20,6 +20,7 @@ export interface DbAdapter {
     slug: string
   ): Promise<{ resort: any; packages: any[]; room_types: any[]; amenities: any[]; media_assets: any[] } | null>;
   getResortOrlandoSupport(resortId: string): Promise<boolean | null>;
+  getResortCheckinAgeRule(resortId: string): Promise<{ min_default: number; min_override: number | null } | null>;
   isRoomTypeForResort(roomTypeId: string, resortId: string): Promise<boolean>;
   searchAvailableBlocks(filters: { resortId?: string; startDate?: string; endDate?: string }): Promise<any[]>;
   getBookingById(bookingId: string): Promise<any | null>;
@@ -153,6 +154,31 @@ export function getDbAdapter(): DbAdapter | null {
       const value = rows[0]?.is_orlando_concierge_supported;
       if (typeof value !== "boolean") return null;
       return value;
+    },
+
+    async getResortCheckinAgeRule(resortId) {
+      await ensureDbReady();
+      const pool = getPool();
+      const { rows } = await pool.query(
+        `select min_checkin_age_default, min_checkin_age_override
+         from resorts
+         where id = $1 and active = true
+         limit 1`,
+        [resortId]
+      );
+      const row = rows[0] as undefined | { min_checkin_age_default?: unknown; min_checkin_age_override?: unknown };
+      if (!row) return null;
+      const defaultAge = typeof row.min_checkin_age_default === "number" ? row.min_checkin_age_default : Number(row.min_checkin_age_default);
+      const overrideAge =
+        row.min_checkin_age_override == null
+          ? null
+          : typeof row.min_checkin_age_override === "number"
+            ? row.min_checkin_age_override
+            : Number(row.min_checkin_age_override);
+
+      if (!Number.isFinite(defaultAge) || defaultAge <= 0) return null;
+      if (overrideAge != null && (!Number.isFinite(overrideAge) || overrideAge <= 0)) return { min_default: defaultAge, min_override: null };
+      return { min_default: defaultAge, min_override: overrideAge };
     },
 
     async isRoomTypeForResort(roomTypeId, resortId) {

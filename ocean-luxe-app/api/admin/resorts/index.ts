@@ -25,6 +25,7 @@ async function handler(req: ApiRequest, res: ApiResponse) {
 
     const payload = {
       name,
+      property_name: typeof body.property_name === "string" ? body.property_name : null,
       slug,
       destination: typeof body.destination === "string" ? body.destination : "Orlando/Kissimmee",
       brand: typeof body.brand === "string" ? body.brand : "Westgate",
@@ -50,30 +51,43 @@ async function handler(req: ApiRequest, res: ApiResponse) {
         typeof body.is_orlando_concierge_supported === "boolean" ? body.is_orlando_concierge_supported : false,
       min_nightly_rate: typeof body.min_nightly_rate === "number" ? body.min_nightly_rate : null,
       max_nightly_rate: typeof body.max_nightly_rate === "number" ? body.max_nightly_rate : null,
+      official_url: typeof body.official_url === "string" ? body.official_url : null,
+      min_checkin_age_default: typeof body.min_checkin_age_default === "number" ? body.min_checkin_age_default : 21,
+      min_checkin_age_override: typeof body.min_checkin_age_override === "number" ? body.min_checkin_age_override : null,
+      from_rate_reference: typeof body.from_rate_reference === "number" ? body.from_rate_reference : null,
+      from_rate_currency: typeof body.from_rate_currency === "string" ? body.from_rate_currency : "USD",
+      from_rate_source: typeof body.from_rate_source === "string" ? body.from_rate_source : null,
       reference_notes: typeof body.reference_notes === "string" ? body.reference_notes : null,
     };
 
     const { rows } = await pool.query(
       `insert into resorts (
-        name, slug, destination, brand, region,
+        name, property_name, slug, destination, brand, region,
         address_line1, address_line2, city, state, zip, country,
         description, description_short, description_long,
         amenities, hero_image_url, gallery_images,
         active, is_published,
         has_water_park, has_beach_access, is_ranch, is_orlando_concierge_supported,
-        min_nightly_rate, max_nightly_rate, reference_notes
+        min_nightly_rate, max_nightly_rate,
+        official_url, min_checkin_age_default, min_checkin_age_override,
+        from_rate_reference, from_rate_currency, from_rate_source,
+        reference_notes
       ) values (
-        $1,$2,$3,$4,$5,
-        $6,$7,$8,$9,$10,$11,
-        $12,$13,$14,
-        $15::jsonb,$16,$17::jsonb,
-        $18,$19,
-        $20,$21,$22,$23,
-        $24,$25,$26
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,$10,$11,$12,
+        $13,$14,$15,
+        $16::jsonb,$17,$18::jsonb,
+        $19,$20,
+        $21,$22,$23,$24,
+        $25,$26,
+        $27,$28,$29,
+        $30,$31,$32,
+        $33
       )
       returning *`,
       [
         payload.name,
+        payload.property_name,
         payload.slug,
         payload.destination,
         payload.brand,
@@ -98,6 +112,12 @@ async function handler(req: ApiRequest, res: ApiResponse) {
         payload.is_orlando_concierge_supported,
         payload.min_nightly_rate,
         payload.max_nightly_rate,
+        payload.official_url,
+        payload.min_checkin_age_default,
+        payload.min_checkin_age_override,
+        payload.from_rate_reference,
+        payload.from_rate_currency,
+        payload.from_rate_source,
         payload.reference_notes,
       ]
     );

@@ -4,6 +4,7 @@ import LoadingState from "../components/state/LoadingState";
 import ErrorState from "../components/state/ErrorState";
 import EmptyState from "../components/state/EmptyState";
 import { fetchDestinations, type DestinationsResponse } from "../lib/api-client";
+import { fromRateCopy } from "../lib/resort-pricing-copy";
 
 type RegionBlock = DestinationsResponse["regions"][number];
 type ResortCard = RegionBlock["resorts"][number];
@@ -15,6 +16,18 @@ function tagList(resort: ResortCard) {
   if (resort.is_ranch) tags.push("Ranch");
   if (resort.is_orlando_concierge_supported) tags.push("Orlando concierge");
   return tags.slice(0, 3);
+}
+
+function priceLine(resort: ResortCard) {
+  const copy = fromRateCopy({
+    from_rate_reference: resort.from_rate_reference ?? null,
+    from_rate_currency: resort.from_rate_currency ?? null,
+  });
+  return (
+    <span title={copy.tooltip ?? undefined}>
+      {copy.label}
+    </span>
+  );
 }
 
 export default function DestinationsPage() {
@@ -99,7 +112,7 @@ export default function DestinationsPage() {
                       <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">{resort.city}{resort.state ? `, ${resort.state}` : ""}</p>
                       <h3 className="mt-2 text-2xl font-semibold">{resort.name}</h3>
                       <p className="mt-2 text-sm text-slate-300">
-                        {resort.min_nightly_rate ? `From $${Number(resort.min_nightly_rate).toFixed(0)}/night` : "Pricing band set in admin"}
+                        {priceLine(resort)}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 text-xs text-cyan-100">

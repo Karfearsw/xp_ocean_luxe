@@ -44,6 +44,7 @@ async function handler(req: ApiRequest, res: ApiResponse) {
 
     const update = buildUpdatePatch(patch, [
       "name",
+      "property_name",
       "slug",
       "destination",
       "brand",
@@ -68,6 +69,12 @@ async function handler(req: ApiRequest, res: ApiResponse) {
       "is_orlando_concierge_supported",
       "min_nightly_rate",
       "max_nightly_rate",
+      "official_url",
+      "min_checkin_age_default",
+      "min_checkin_age_override",
+      "from_rate_reference",
+      "from_rate_currency",
+      "from_rate_source",
       "reference_notes",
     ]);
     if (!update) {

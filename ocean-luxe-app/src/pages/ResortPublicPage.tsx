@@ -36,6 +36,12 @@ export default function ResortPublicPage() {
   const resort = data?.resort ?? null;
   const roomTypes = useMemo(() => (data?.room_types ?? []).filter((rt) => rt.is_active !== false), [data?.room_types]);
   const packages = useMemo(() => (data?.packages ?? []).filter((p) => p.active !== false), [data?.packages]);
+  const minCheckinAge = useMemo(() => {
+    if (!resort) return 21;
+    const override = resort.min_checkin_age_override;
+    const fallbackDefault = resort.min_checkin_age_default ?? 21;
+    return override != null ? override : fallbackDefault;
+  }, [resort]);
 
   if (loading) return <LoadingState title="Loading resort" description="Pulling room types, packages, and verified inventory." />;
   if (error) return <ErrorState title="Unable to load resort" message={error} />;
@@ -146,11 +152,10 @@ export default function ResortPublicPage() {
         <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Compliance</p>
         <h2 className="mt-3 text-2xl font-semibold">Guest ID & payment policy</h2>
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300">
-          Primary guest must be 21+ and will present a valid photo ID and major credit card matching their name for any security deposit at check-in.
+          Primary guest must be {minCheckinAge}+ and will present a valid photo ID and major credit card matching their name for any security deposit at check-in.
           Ocean Luxe is an independent booking agency and not affiliated with the resort brand.
         </p>
       </section>
     </div>
   );
 }
-

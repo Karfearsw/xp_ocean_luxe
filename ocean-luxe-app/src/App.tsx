@@ -17,6 +17,7 @@ import Partners from "./pages/Partners";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminResortsPage from "./pages/admin/AdminResortsPage";
+import AdminResortEditPage from "./pages/admin/AdminResortEditPage";
 import AdminCarsPage from "./pages/admin/AdminCarsPage";
 import AdminConciergePage from "./pages/admin/AdminConciergePage";
 
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/resorts" element={<AdminResortsPage />} />
+        <Route path="/admin/resorts/:id" element={<AdminResortEditPage />} />
         <Route path="/admin/cars" element={<AdminCarsPage />} />
         <Route path="/admin/concierge" element={<AdminConciergePage />} />
         <Route path="/account/create" element={<CreateAccountPage />} />

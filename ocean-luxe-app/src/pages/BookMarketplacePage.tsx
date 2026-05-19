@@ -5,10 +5,23 @@ import ErrorState from "../components/state/ErrorState";
 import LoadingState from "../components/state/LoadingState";
 import { createBookingDraft, createPaymentIntent, fetchCarTypes, fetchConciergeServices, searchBookOptions } from "../lib/api-client";
 import { formatCurrency, nightsBetween } from "../lib/formatters";
+import { fromRateCopy } from "../lib/resort-pricing-copy";
 import type { BookSearchResult } from "../lib/api-client";
 import type { CarType, ConciergeService } from "../types";
 
 type Step = 1 | 2 | 3 | 4;
+
+function ageAtDate(dob: string, atDate: string) {
+  const birth = new Date(dob);
+  const target = new Date(atDate);
+  if (!Number.isFinite(birth.getTime()) || !Number.isFinite(target.getTime())) return null;
+  let age = target.getFullYear() - birth.getFullYear();
+  const monthDiff = target.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && target.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
 
 export default function BookMarketplacePage() {
   const [searchParams] = useSearchParams();
@@ -42,6 +55,21 @@ export default function BookMarketplacePage() {
   }, [dates.endDate, dates.startDate]);
 
   const isOrlandoSupported = selected?.is_orlando_concierge_supported === true;
+  const minCheckinAge = useMemo(() => {
+    if (!selected) return 21;
+    const fallbackDefault = selected.min_checkin_age_default != null ? Number(selected.min_checkin_age_default) : 21;
+    const override = selected.min_checkin_age_override != null ? Number(selected.min_checkin_age_override) : null;
+    if (override != null && Number.isFinite(override) && override > 0) return override;
+    if (Number.isFinite(fallbackDefault) && fallbackDefault > 0) return fallbackDefault;
+    return 21;
+  }, [selected]);
+
+  const guestAgeAtCheckIn = useMemo(() => {
+    if (!dates.startDate || !form.guest_dob) return null;
+    return ageAtDate(form.guest_dob, dates.startDate);
+  }, [dates.startDate, form.guest_dob]);
+
+  const isUnderMinAge = guestAgeAtCheckIn != null && guestAgeAtCheckIn < minCheckinAge;
 
   const selectedCar = useMemo(() => {
     if (!selectedCarId) return null;
@@ -139,6 +167,14 @@ export default function BookMarketplacePage() {
   async function handleCheckout(event: FormEvent) {
     event.preventDefault();
     if (!selected) return;
+    if (isUnderMinAge) {
+      setError(`Primary guest must be at least ${minCheckinAge} years old at check-in.`);
+      return;
+    }
+    if (!form.compliance_acknowledged) {
+      setError("Please confirm the resort check-in policy acknowledgement.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -243,6 +279,9 @@ export default function BookMarketplacePage() {
                         <div>
                           <div className="text-xs tracking-[0.24em] text-white/50">{item.region}</div>
                           <div className="mt-1 text-xl font-semibold">{item.resort_name}</div>
+                          <div className="mt-1 text-xs text-slate-400" title={fromRateCopy({ from_rate_reference: item.from_rate_reference ?? null, from_rate_currency: item.from_rate_currency ?? null }).tooltip ?? undefined}>
+                            {fromRateCopy({ from_rate_reference: item.from_rate_reference ?? null, from_rate_currency: item.from_rate_currency ?? null }).label}
+                          </div>
                           <div className="mt-1 text-sm text-slate-300">
                             {item.room_type_name} · sleeps {item.max_occupancy} · {item.package_name}
                           </div>
@@ -446,6 +485,15 @@ export default function BookMarketplacePage() {
                 Date of birth
                 <input required type="date" value={form.guest_dob} onChange={(e) => setForm((s) => ({ ...s, guest_dob: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
               </label>
+              <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-300">
+                <div className="text-xs uppercase tracking-[0.24em] text-white/55">Check-in policy</div>
+                <div className="mt-2">
+                  Minimum check-in age: <span className="text-white">{minCheckinAge}+</span> with valid photo ID.
+                </div>
+                <div className="mt-2">
+                  A major credit card in the guest’s name is required at check-in for security deposit / incidentals. Some resorts also collect nightly resort fees separately from Ocean Luxe charges.
+                </div>
+              </div>
               <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-300">
                 <input
                   required
@@ -454,12 +502,23 @@ export default function BookMarketplacePage() {
                   onChange={(e) => setForm((s) => ({ ...s, compliance_acknowledged: e.target.checked }))}
                   className="mt-1 size-4 accent-cyan-300"
                 />
-                <span>I agree to present a valid photo ID and a major credit card matching my name for a security deposit upon check-in at the resort.</span>
+                <span>
+                  I understand that I must meet the minimum check-in age ({minCheckinAge}+), present a valid photo ID, and present a major credit card in my name at the resort. I understand resort-collected fees and deposits are separate from Ocean Luxe charges.
+                </span>
               </label>
+              {isUnderMinAge ? (
+                <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-3 text-sm text-amber-100">
+                  Primary guest must be {minCheckinAge}+ at check-in to complete checkout.
+                </div>
+              ) : null}
 
               <div className="flex items-center justify-between gap-4 pt-2">
                 <button type="button" onClick={() => setStep(3)} className="text-sm text-slate-300 hover:text-white">Back</button>
-                <button type="submit" disabled={!selected || loading} className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200 disabled:opacity-60">
+                <button
+                  type="submit"
+                  disabled={!selected || loading || isUnderMinAge || !form.compliance_acknowledged}
+                  className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200 disabled:opacity-60"
+                >
                   {loading ? "Creating payment" : "Confirm & pay"}
                 </button>
               </div>

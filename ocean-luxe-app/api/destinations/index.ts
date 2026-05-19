@@ -29,7 +29,8 @@ async function handler(req: ApiRequest, res: ApiResponse) {
   const pool = getPool();
   const { rows } = await pool.query(
     `select id, slug, name, city, state, country, destination, region, hero_image_url, min_nightly_rate, max_nightly_rate,
-            has_water_park, has_beach_access, is_ranch, is_orlando_concierge_supported
+            has_water_park, has_beach_access, is_ranch, is_orlando_concierge_supported,
+            from_rate_reference, from_rate_currency, from_rate_source
      from resorts
      where active = true and is_published = true
      order by region asc, name asc`

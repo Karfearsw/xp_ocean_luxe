@@ -17,6 +17,18 @@ const initialForm = {
   check_out_date: "",
 };
 
+function ageAtDate(dob: string, atDate: string) {
+  const birth = new Date(dob);
+  const target = new Date(atDate);
+  if (!Number.isFinite(birth.getTime()) || !Number.isFinite(target.getTime())) return null;
+  let age = target.getFullYear() - birth.getFullYear();
+  const monthDiff = target.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && target.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
 export default function BookingFlowPage() {
   const { resortSlug = "", packageId = "" } = useParams();
   const navigate = useNavigate();
@@ -58,11 +70,10 @@ export default function BookingFlowPage() {
   const amountDueNow = selectedPackage?.payment_mode === "deposit"
     ? selectedPackage.deposit_amount ?? 0
     : selectedPackage?.public_price ?? 0;
-  const guestAge = form.guest_dob
-    ? Math.floor((Date.now() - Date.parse(form.guest_dob)) / (365.25 * 24 * 60 * 60 * 1000))
-    : null;
-  const isUnder21 = guestAge != null && guestAge < 21;
-  const canSubmit = !submitting && !isUnder21 && form.compliance_acknowledged;
+  const minCheckinAge = resort?.min_checkin_age_override ?? resort?.min_checkin_age_default ?? 21;
+  const guestAgeAtCheckIn = form.guest_dob && form.check_in_date ? ageAtDate(form.guest_dob, form.check_in_date) : null;
+  const isUnderMinAge = guestAgeAtCheckIn != null && guestAgeAtCheckIn < minCheckinAge;
+  const canSubmit = !submitting && !isUnderMinAge && form.compliance_acknowledged;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -153,11 +164,13 @@ export default function BookingFlowPage() {
               onChange={(event) => setForm((current) => ({ ...current, compliance_acknowledged: event.target.checked }))}
               className="mt-1 size-4 accent-cyan-300"
             />
-            <span>I agree to present a valid photo ID and a major credit card matching my name for a security deposit upon check-in at the resort.</span>
+            <span>
+              I understand that I must meet the minimum check-in age ({minCheckinAge}+), present a valid photo ID, and present a major credit card in my name at the resort. I understand resort-collected fees and deposits are separate from Ocean Luxe charges.
+            </span>
           </label>
-          {isUnder21 ? (
+          {isUnderMinAge ? (
             <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-3 text-sm text-amber-100">
-              Primary guest must be 21 or older to complete checkout.
+              Primary guest must be {minCheckinAge}+ at check-in to complete checkout.
             </div>
           ) : null}
 

@@ -162,6 +162,9 @@ export type DestinationsResponse = {
       hero_image_url: string | null;
       min_nightly_rate: number | null;
       max_nightly_rate: number | null;
+      from_rate_reference?: number | null;
+      from_rate_currency?: string | null;
+      from_rate_source?: string | null;
       has_water_park: boolean;
       has_beach_access: boolean;
       is_ranch: boolean;
@@ -194,6 +197,11 @@ export type BookSearchResult = {
   destination: string;
   hero_image_url: string | null;
   is_orlando_concierge_supported: boolean;
+  from_rate_reference?: number | null;
+  from_rate_currency?: string | null;
+  from_rate_source?: string | null;
+  min_checkin_age_default?: number | null;
+  min_checkin_age_override?: number | null;
   room_type_id: string;
   room_type_name: string;
   max_occupancy: number;
@@ -240,6 +248,20 @@ export async function adminMe() {
 export async function adminListResorts() {
   const response = await fetch(`/api/admin/resorts`);
   return readJson<Resort[]>(response);
+}
+
+export async function adminGetResort(id: string) {
+  const response = await fetch(`/api/admin/resorts/${encodeURIComponent(id)}`);
+  return readJson<Resort>(response);
+}
+
+export async function adminUpdateResort(id: string, patch: Partial<Resort>) {
+  const response = await fetch(`/api/admin/resorts/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  return readJson<Resort>(response);
 }
 
 export async function adminListCars() {

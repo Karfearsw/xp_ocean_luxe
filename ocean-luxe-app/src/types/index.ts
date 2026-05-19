@@ -3,6 +3,7 @@ export type Amenity = string;
 export interface Resort {
   id: string;
   name: string;
+  property_name?: string | null;
   slug: string;
   destination: string;
   brand?: string;
@@ -27,6 +28,13 @@ export interface Resort {
   is_orlando_concierge_supported?: boolean;
   min_nightly_rate?: number | null;
   max_nightly_rate?: number | null;
+  official_url?: string | null;
+  min_checkin_age_default?: number;
+  min_checkin_age_override?: number | null;
+  from_rate_reference?: number | null;
+  from_rate_currency?: string;
+  from_rate_source?: string | null;
+  reference_notes?: string | null;
 }
 
 export interface RoomType {
