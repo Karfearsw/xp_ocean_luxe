@@ -7,7 +7,7 @@
 
 ## Vercel Project A
 - App: `ocean-luxe-app`
-- Domain: `xp.oceanluxe.org`
+- Domain: (confirm in Vercel project settings — `xp.oceanluxe.org` was stale and has been removed)
 - Framework: Vite
 - Build command: `npm run build`
 - Output directory: `dist`
@@ -19,7 +19,7 @@
 - Keep SPA rewrites and `/api/*` routes separate so serverless functions remain reachable.
 
 ## Existing CRM Integration
-- Existing CRM domain: `deals.oceanluxe.org`
+- Existing CRM domain: `crm.oceanluxe.org` (`deals.oceanluxe.org` was stale)
 - Do not create a second CRM app in this repository.
 - Point `CRM_API_BASE_URL` to the existing CRM API surface used for opportunity sync.
 - Add new admin routes and queue processing only inside the real CRM codebase once that folder is available locally.
