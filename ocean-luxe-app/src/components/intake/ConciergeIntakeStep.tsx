@@ -96,7 +96,7 @@ export default function ConciergeIntakeStep({
             type="checkbox"
             checked={intake.smsConsent}
             onChange={(e) => onPatch({ smsConsent: e.target.checked })}
-            className="mt-1 size-4 accent-[#D6B25A]"
+            className="mt-1 size-4 accent-[#D4AF37]"
           />
           <span>
             I consent to receive SMS reminders and concierge updates (optional; consent language finalized in phase 2).
@@ -107,7 +107,7 @@ export default function ConciergeIntakeStep({
             type="checkbox"
             checked={intake.emailConsent}
             onChange={(e) => onPatch({ emailConsent: e.target.checked })}
-            className="mt-1 size-4 accent-[#D6B25A]"
+            className="mt-1 size-4 accent-[#D4AF37]"
           />
           <span>I consent to receive email follow-up and planning materials.</span>
         </label>
@@ -123,7 +123,7 @@ export default function ConciergeIntakeStep({
         </button>
         <button
           type="submit"
-          className="inline-flex items-center gap-2 rounded-full bg-[#D6B25A] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
+          className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
         >
           Submit request <ChevronRight className="size-4" />
         </button>

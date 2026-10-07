@@ -26,17 +26,17 @@ export default function AccountLoginPage() {
 
   return (
     <div className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/10 md:p-12">
-      <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Account access</p>
+      <p className="text-sm uppercase tracking-[0.35em] text-gold-200">Account access</p>
       <h1 className="mt-4 text-4xl font-semibold">Sign in with a magic link</h1>
-      <p className="mt-4 text-slate-300">Enter the email address you used at checkout. We’ll email a secure sign-in link.</p>
+      <p className="mt-4 text-neutral-300">Enter the email address you used at checkout. We’ll email a secure sign-in link.</p>
       {booking ? (
-        <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950/40 px-5 py-4 text-sm text-slate-300">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-950/40 px-5 py-4 text-sm text-neutral-300">
           Booking reference: <span className="font-semibold text-white">{booking}</span>
         </div>
       ) : null}
 
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
-        <label className="block text-sm text-slate-200">
+        <label className="block text-sm text-neutral-200">
           Email
           <input
             value={email}
@@ -44,27 +44,27 @@ export default function AccountLoginPage() {
             type="email"
             required
             placeholder="you@example.com"
-            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3 text-white outline-none ring-0 transition focus:border-cyan-300/60"
+            className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-950/40 px-4 py-3 text-white outline-none ring-0 transition focus:border-gold-300/60"
           />
         </label>
 
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex rounded-full bg-gold-300 px-6 py-3 font-medium text-neutral-950 transition hover:bg-gold-200 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {status === "sending" ? "Sending…" : "Email me a sign-in link"}
         </button>
       </form>
 
       {status === "sent" ? (
-        <div className="mt-6 rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-5 text-sm text-cyan-100">
+        <div className="mt-6 rounded-2xl border border-gold-300/30 bg-gold-400/10 p-5 text-sm text-gold-100">
           If an Ocean Luxe account exists for <span className="font-semibold text-white">{email}</span>, a sign-in link is on the way.
         </div>
       ) : null}
 
       {status === "error" && error ? (
-        <div className="mt-6 rounded-2xl border border-amber-300/30 bg-amber-400/10 p-5 text-sm text-amber-100">{error}</div>
+        <div className="mt-6 rounded-2xl border border-gold-300/30 bg-gold-400/10 p-5 text-sm text-gold-100">{error}</div>
       ) : null}
 
       <div className="mt-10 flex flex-wrap gap-3">

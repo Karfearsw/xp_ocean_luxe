@@ -17,7 +17,7 @@ export default function LoadingState({
           <div key={index} className="h-44 animate-pulse rounded-2xl bg-white/10" />
         ))}
       </div>
-      <p className="mt-6 text-sm text-slate-300">{title}. {description}</p>
+      <p className="mt-6 text-sm text-neutral-300">{title}. {description}</p>
     </div>
   );
 }
