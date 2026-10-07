@@ -52,15 +52,15 @@ export default function DestinationsPage() {
   return (
     <div className="space-y-10">
       <header className="space-y-4">
-        <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Destinations</p>
+        <p className="text-sm uppercase tracking-[0.35em] text-gold-200">Destinations</p>
         <h1 className="text-4xl font-semibold md:text-5xl">Curated resort regions</h1>
-        <p className="max-w-3xl text-slate-300">
+        <p className="max-w-3xl text-neutral-300">
           Book Westgate-backed resort stays, layer in Tesla rentals, and add Orlando concierge support when the destination qualifies.
         </p>
-        <div className="flex flex-col gap-2 text-sm text-slate-300 sm:max-w-sm">
+        <div className="flex flex-col gap-2 text-sm text-neutral-300 sm:max-w-sm">
           Region
           <select
-            className="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none"
+            className="rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -81,7 +81,7 @@ export default function DestinationsPage() {
                 <p className="text-xs tracking-[0.28em] text-white/55">{block.region.toUpperCase()}</p>
                 <h2 className="mt-2 text-2xl font-semibold md:text-3xl">{block.region}</h2>
               </div>
-              <Link to={`/book?region=${encodeURIComponent(block.region)}`} className="text-sm text-cyan-200 hover:text-cyan-100">
+              <Link to={`/book?region=${encodeURIComponent(block.region)}`} className="text-sm text-gold-200 hover:text-gold-100">
                 Check dates →
               </Link>
             </div>
@@ -92,25 +92,25 @@ export default function DestinationsPage() {
                   {resort.hero_image_url ? (
                     <img src={resort.hero_image_url} alt={resort.name} className="h-52 w-full object-cover" />
                   ) : (
-                    <div className="h-52 w-full bg-slate-900/50" />
+                    <div className="h-52 w-full bg-neutral-900/50" />
                   )}
                   <div className="space-y-4 p-6">
                     <div>
-                      <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">{resort.city}{resort.state ? `, ${resort.state}` : ""}</p>
+                      <p className="text-sm uppercase tracking-[0.35em] text-gold-200">{resort.city}{resort.state ? `, ${resort.state}` : ""}</p>
                       <h3 className="mt-2 text-2xl font-semibold">{resort.name}</h3>
-                      <p className="mt-2 text-sm text-slate-300">
+                      <p className="mt-2 text-sm text-neutral-300">
                         {resort.min_nightly_rate ? `From $${Number(resort.min_nightly_rate).toFixed(0)}/night` : "Pricing band set in admin"}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-cyan-100">
+                    <div className="flex flex-wrap gap-2 text-xs text-gold-100">
                       {tagList(resort).map((tag) => (
-                        <span key={tag} className="rounded-full border border-cyan-200/20 bg-cyan-400/10 px-3 py-1">
+                        <span key={tag} className="rounded-full border border-gold-200/20 bg-gold-400/10 px-3 py-1">
                           {tag}
                         </span>
                       ))}
                     </div>
                     <div className="flex flex-wrap gap-3">
-                      <Link to={`/resort/${resort.slug}`} className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-cyan-200">
+                      <Link to={`/resort/${resort.slug}`} className="rounded-full bg-gold-300 px-5 py-3 text-sm font-medium text-neutral-950 transition hover:bg-gold-200">
                         View resort
                       </Link>
                       <Link to={`/book?resort=${encodeURIComponent(resort.slug)}`} className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white/90 hover:bg-white/10">

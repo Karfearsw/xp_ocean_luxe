@@ -121,7 +121,7 @@ export default function Partners() {
                 </Field>
                 <button
                   type="submit"
-                  className="mt-2 inline-flex items-center justify-center rounded-full bg-[#D6B25A] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
+                  className="mt-2 inline-flex items-center justify-center rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
                 >
                   Send inquiry
                 </button>

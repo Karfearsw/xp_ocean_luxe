@@ -57,7 +57,7 @@ export default function Packages() {
             </ul>
             <a
               href="/book"
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#D6B25A] px-5 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
+              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#D4AF37] px-5 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
             >
               Start Trip Snapshot
             </a>

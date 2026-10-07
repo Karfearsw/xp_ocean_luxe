@@ -107,7 +107,7 @@ export default function TripSnapshotStep({
               className={[
                 "rounded-2xl border px-4 py-3 text-left text-sm transition",
                 snapshot.lane === lane
-                  ? "border-[#D6B25A]/60 bg-[#D6B25A]/10 text-white"
+                  ? "border-[#D4AF37]/60 bg-[#D4AF37]/10 text-white"
                   : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
               ].join(" ")}
             >
@@ -130,11 +130,11 @@ export default function TripSnapshotStep({
                 className={[
                   "rounded-full border px-4 py-2 text-sm transition",
                   active
-                    ? "border-[#D6B25A]/60 bg-[#D6B25A]/10 text-white"
+                    ? "border-[#D4AF37]/60 bg-[#D4AF37]/10 text-white"
                     : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
                 ].join(" ")}
               >
-                {active && <Check className="mr-2 inline size-4 text-[#D6B25A]" />}
+                {active && <Check className="mr-2 inline size-4 text-[#D4AF37]" />}
                 {p}
               </button>
             );
@@ -167,7 +167,7 @@ export default function TripSnapshotStep({
       <div className="md:col-span-2 mt-2 flex items-center justify-end">
         <button
           type="submit"
-          className="inline-flex items-center gap-2 rounded-full bg-[#D6B25A] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
+          className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110"
         >
           Continue <ChevronRight className="size-4" />
         </button>

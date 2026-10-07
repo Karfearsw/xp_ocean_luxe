@@ -100,14 +100,14 @@ export default function Westgate() {
                     type="checkbox"
                     checked={form.consent}
                     onChange={(e) => setForm((s) => ({ ...s, consent: e.target.checked }))}
-                    className="mt-1 size-4 accent-[#D6B25A]"
+                    className="mt-1 size-4 accent-[#D4AF37]"
                   />
                   <span>I understand this is optional and may require additional disclosures in the live system.</span>
                 </label>
                 <button
                   type="submit"
                   disabled={!form.consent}
-                  className="mt-2 inline-flex items-center justify-center rounded-full bg-[#D6B25A] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110 disabled:opacity-60"
+                  className="mt-2 inline-flex items-center justify-center rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-medium text-[#07080A] transition hover:brightness-110 disabled:opacity-60"
                 >
                   Request invitation
                 </button>

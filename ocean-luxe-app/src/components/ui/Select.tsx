@@ -45,7 +45,7 @@ export default function Select({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "mt-2 flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/90 outline-none transition focus:border-[#D6B25A]/60 focus:bg-white/10",
+          "mt-2 flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/90 outline-none transition focus:border-[#D4AF37]/60 focus:bg-white/10",
           className,
         )}
         aria-haspopup="listbox"
@@ -72,13 +72,13 @@ export default function Select({
                   }}
                   className={cn(
                     "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition",
-                    active ? "bg-[#D6B25A]/10 text-white" : "text-white/75 hover:bg-white/10 hover:text-white",
+                    active ? "bg-[#D4AF37]/10 text-white" : "text-white/75 hover:bg-white/10 hover:text-white",
                   )}
                   role="option"
                   aria-selected={active}
                 >
                   <span className="truncate">{o.label}</span>
-                  {active && <Check className="size-4 text-[#D6B25A]" />}
+                  {active && <Check className="size-4 text-[#D4AF37]" />}
                 </button>
               );
             })}

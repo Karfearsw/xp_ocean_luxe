@@ -172,9 +172,9 @@ export default function BookMarketplacePage() {
   return (
     <div className="space-y-10">
       <header className="space-y-4">
-        <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Book</p>
+        <p className="text-sm uppercase tracking-[0.35em] text-gold-200">Book</p>
         <h1 className="text-4xl font-semibold md:text-5xl">Check availability, then secure your stay</h1>
-        <p className="max-w-3xl text-slate-300">
+        <p className="max-w-3xl text-neutral-300">
           Select dates, choose the room type, and confirm payment. Orlando concierge and Tesla delivery show only when the destination supports it.
         </p>
       </header>
@@ -190,7 +190,7 @@ export default function BookMarketplacePage() {
             { label: "Extras", id: 3 },
             { label: "Guest + payment", id: 4 },
           ].map((s) => (
-            <div key={s.id} className={`rounded-full px-4 py-2 ${step >= (s.id as Step) ? "bg-cyan-300 text-slate-950" : "bg-white/10 text-slate-300"}`}>
+            <div key={s.id} className={`rounded-full px-4 py-2 ${step >= (s.id as Step) ? "bg-gold-300 text-neutral-950" : "bg-white/10 text-neutral-300"}`}>
               {s.id}. {s.label}
             </div>
           ))}
@@ -198,21 +198,21 @@ export default function BookMarketplacePage() {
 
         {step === 1 ? (
           <div className="mt-8 grid gap-6 md:grid-cols-3">
-            <label className="space-y-2 text-sm text-slate-300">
+            <label className="space-y-2 text-sm text-neutral-300">
               Check-in
-              <input type="date" value={dates.startDate} onChange={(e) => setDates((v) => ({ ...v, startDate: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+              <input type="date" value={dates.startDate} onChange={(e) => setDates((v) => ({ ...v, startDate: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
             </label>
-            <label className="space-y-2 text-sm text-slate-300">
+            <label className="space-y-2 text-sm text-neutral-300">
               Check-out
-              <input type="date" value={dates.endDate} onChange={(e) => setDates((v) => ({ ...v, endDate: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+              <input type="date" value={dates.endDate} onChange={(e) => setDates((v) => ({ ...v, endDate: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
             </label>
-            <label className="space-y-2 text-sm text-slate-300">
+            <label className="space-y-2 text-sm text-neutral-300">
               Guests
-              <input type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+              <input type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
             </label>
             <div className="md:col-span-3 flex flex-wrap items-center justify-between gap-3 pt-2">
-              <Link to="/destinations" className="text-sm text-slate-300 hover:text-white">Browse destinations</Link>
-              <button type="button" onClick={() => runSearch()} className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200">
+              <Link to="/destinations" className="text-sm text-neutral-300 hover:text-white">Browse destinations</Link>
+              <button type="button" onClick={() => runSearch()} className="rounded-full bg-gold-300 px-6 py-3 font-medium text-neutral-950 transition hover:bg-gold-200">
                 Search availability
               </button>
             </div>
@@ -237,18 +237,18 @@ export default function BookMarketplacePage() {
                         setSelected(item);
                         setStep(3);
                       }}
-                      className="text-left rounded-3xl border border-white/10 bg-slate-950/40 p-5 hover:bg-slate-950/55"
+                      className="text-left rounded-3xl border border-white/10 bg-neutral-950/40 p-5 hover:bg-neutral-950/55"
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
                           <div className="text-xs tracking-[0.24em] text-white/50">{item.region}</div>
                           <div className="mt-1 text-xl font-semibold">{item.resort_name}</div>
-                          <div className="mt-1 text-sm text-slate-300">
+                          <div className="mt-1 text-sm text-neutral-300">
                             {item.room_type_name} · sleeps {item.max_occupancy} · {item.package_name}
                           </div>
                         </div>
                         <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                          <div className="text-xs uppercase tracking-[0.3em] text-slate-400">Due now</div>
+                          <div className="text-xs uppercase tracking-[0.3em] text-neutral-400">Due now</div>
                           <div className="mt-1 text-lg font-semibold">{formatCurrency(due)}</div>
                         </div>
                       </div>
@@ -256,7 +256,7 @@ export default function BookMarketplacePage() {
                   );
                 })}
                 <div className="flex items-center justify-between pt-2">
-                  <button type="button" onClick={() => setStep(1)} className="text-sm text-slate-300 hover:text-white">Back</button>
+                  <button type="button" onClick={() => setStep(1)} className="text-sm text-neutral-300 hover:text-white">Back</button>
                 </div>
               </div>
             )}
@@ -269,40 +269,40 @@ export default function BookMarketplacePage() {
               <EmptyState title="Select an option" description="Pick a room + package to continue." actionLabel="Back" actionHref="#" />
             ) : (
               <>
-                <div className="rounded-3xl border border-white/10 bg-slate-950/40 p-5">
+                <div className="rounded-3xl border border-white/10 bg-neutral-950/40 p-5">
                   <div className="text-xs tracking-[0.24em] text-white/50">SELECTED</div>
                   <div className="mt-2 text-2xl font-semibold">{selected.resort_name}</div>
-                  <div className="mt-2 text-sm text-slate-300">{selected.room_type_name} · {selected.package_name}</div>
+                  <div className="mt-2 text-sm text-neutral-300">{selected.room_type_name} · {selected.package_name}</div>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-2">
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                    <div className="text-sm uppercase tracking-[0.35em] text-cyan-200">Car Rental</div>
-                    <p className="mt-3 text-sm text-slate-300">
+                    <div className="text-sm uppercase tracking-[0.35em] text-gold-200">Car Rental</div>
+                    <p className="mt-3 text-sm text-neutral-300">
                       Add transport to your booking. Orlando-supported resorts can request Tesla delivery options. Add-ons are collected now and confirmed by the team after payment.
                     </p>
                     <div className="mt-5 space-y-3">
-                      <label className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
+                      <label className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-neutral-950/40 px-4 py-3 text-sm text-neutral-200">
                         <span>No car</span>
                         <input
                           type="radio"
                           name="car"
                           checked={selectedCarId == null}
                           onChange={() => setSelectedCarId(null)}
-                          className="size-4 accent-cyan-300"
+                          className="size-4 accent-gold-300"
                         />
                       </label>
                       {cars
                         .filter((c) => c.category === "Economy")
                         .map((car) => (
-                          <label key={car.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
+                          <label key={car.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-neutral-950/40 px-4 py-3 text-sm text-neutral-200">
                             <span>{car.name}</span>
                             <input
                               type="radio"
                               name="car"
                               checked={selectedCarId === car.id}
                               onChange={() => setSelectedCarId(car.id)}
-                              className="size-4 accent-cyan-300"
+                              className="size-4 accent-gold-300"
                             />
                           </label>
                         ))}
@@ -312,7 +312,7 @@ export default function BookMarketplacePage() {
                           <label
                             key={car.id}
                             className={`flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm ${
-                              isOrlandoSupported ? "bg-slate-950/40 text-slate-200" : "bg-slate-950/20 text-slate-500"
+                              isOrlandoSupported ? "bg-neutral-950/40 text-neutral-200" : "bg-neutral-950/20 text-neutral-500"
                             }`}
                           >
                             <span>{car.name}</span>
@@ -322,12 +322,12 @@ export default function BookMarketplacePage() {
                               checked={selectedCarId === car.id}
                               onChange={() => setSelectedCarId(car.id)}
                               disabled={!isOrlandoSupported}
-                              className="size-4 accent-cyan-300 disabled:opacity-50"
+                              className="size-4 accent-gold-300 disabled:opacity-50"
                             />
                           </label>
                         ))}
                       {!isOrlandoSupported ? (
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-xs text-slate-400">
+                        <div className="rounded-2xl border border-white/10 bg-neutral-950/20 px-4 py-3 text-xs text-neutral-400">
                           Tesla delivery is Orlando-only in v1.
                         </div>
                       ) : null}
@@ -335,17 +335,17 @@ export default function BookMarketplacePage() {
                   </div>
 
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                    <div className="text-sm uppercase tracking-[0.35em] text-cyan-200">Concierge</div>
-                    <p className="mt-3 text-sm text-slate-300">
+                    <div className="text-sm uppercase tracking-[0.35em] text-gold-200">Concierge</div>
+                    <p className="mt-3 text-sm text-neutral-300">
                       Orlando-only concierge services can be added to your booking request. A team member confirms scope and scheduling after payment.
                     </p>
                     <div className="mt-5 space-y-3">
-                      <div className="flex items-center justify-between text-sm text-slate-300">
+                      <div className="flex items-center justify-between text-sm text-neutral-300">
                         <span>
                           Selected: {selectedConciergeIds.length ? `${selectedConciergeIds.length} services` : "None"}
                         </span>
                         {selectedConciergeIds.length ? (
-                          <button type="button" onClick={() => setSelectedConciergeIds([])} className="text-xs text-slate-300 hover:text-white">
+                          <button type="button" onClick={() => setSelectedConciergeIds([])} className="text-xs text-neutral-300 hover:text-white">
                             Clear
                           </button>
                         ) : null}
@@ -357,12 +357,12 @@ export default function BookMarketplacePage() {
                             <label
                               key={service.id}
                               className={`flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-4 py-3 text-sm ${
-                                isOrlandoSupported ? "bg-slate-950/40 text-slate-200" : "bg-slate-950/20 text-slate-500"
+                                isOrlandoSupported ? "bg-neutral-950/40 text-neutral-200" : "bg-neutral-950/20 text-neutral-500"
                               }`}
                             >
                               <span className="flex flex-col gap-1">
                                 <span>{service.name}</span>
-                                <span className="text-xs text-slate-400">{formatCurrency(Number(service.base_fee) || 0)}</span>
+                                <span className="text-xs text-neutral-400">{formatCurrency(Number(service.base_fee) || 0)}</span>
                               </span>
                               <input
                                 type="checkbox"
@@ -374,27 +374,27 @@ export default function BookMarketplacePage() {
                                   });
                                 }}
                                 disabled={!isOrlandoSupported}
-                                className="size-4 accent-cyan-300 disabled:opacity-50"
+                                className="size-4 accent-gold-300 disabled:opacity-50"
                               />
                             </label>
                           );
                         })}
                       </div>
                       {!isOrlandoSupported ? (
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-xs text-slate-400">
+                        <div className="rounded-2xl border border-white/10 bg-neutral-950/20 px-4 py-3 text-xs text-neutral-400">
                           Concierge is currently available only for Orlando/Kissimmee stays.
                         </div>
                       ) : null}
-                      <Link to="/concierge-orlando" className="text-sm text-cyan-200 hover:text-cyan-100">
+                      <Link to="/concierge-orlando" className="text-sm text-gold-200 hover:text-gold-100">
                         Need full Orlando handling? Submit concierge details →
                       </Link>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-slate-950/40 p-5">
+                <div className="rounded-3xl border border-white/10 bg-neutral-950/40 p-5">
                   <div className="text-xs tracking-[0.24em] text-white/50">ESTIMATED TOTALS</div>
-                  <div className="mt-4 space-y-2 text-sm text-slate-300">
+                  <div className="mt-4 space-y-2 text-sm text-neutral-300">
                     <div className="flex items-center justify-between">
                       <span>Car total</span>
                       <span className="text-white">{formatCurrency(carTotal)}</span>
@@ -415,8 +415,8 @@ export default function BookMarketplacePage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <button type="button" onClick={() => setStep(2)} className="text-sm text-slate-300 hover:text-white">Back</button>
-                  <button type="button" onClick={() => setStep(4)} className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200">
+                  <button type="button" onClick={() => setStep(2)} className="text-sm text-neutral-300 hover:text-white">Back</button>
+                  <button type="button" onClick={() => setStep(4)} className="rounded-full bg-gold-300 px-6 py-3 font-medium text-neutral-950 transition hover:bg-gold-200">
                     Continue
                   </button>
                 </div>
@@ -429,83 +429,83 @@ export default function BookMarketplacePage() {
           <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <form className="space-y-5" onSubmit={handleCheckout}>
               <div className="grid gap-5 md:grid-cols-2">
-                <label className="space-y-2 text-sm text-slate-300">
+                <label className="space-y-2 text-sm text-neutral-300">
                   Guest name
-                  <input required value={form.guest_name} onChange={(e) => setForm((s) => ({ ...s, guest_name: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+                  <input required value={form.guest_name} onChange={(e) => setForm((s) => ({ ...s, guest_name: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
                 </label>
-                <label className="space-y-2 text-sm text-slate-300">
+                <label className="space-y-2 text-sm text-neutral-300">
                   Phone
-                  <input required value={form.guest_phone} onChange={(e) => setForm((s) => ({ ...s, guest_phone: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+                  <input required value={form.guest_phone} onChange={(e) => setForm((s) => ({ ...s, guest_phone: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
                 </label>
               </div>
-              <label className="block space-y-2 text-sm text-slate-300">
+              <label className="block space-y-2 text-sm text-neutral-300">
                 Email
-                <input required type="email" value={form.guest_email} onChange={(e) => setForm((s) => ({ ...s, guest_email: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+                <input required type="email" value={form.guest_email} onChange={(e) => setForm((s) => ({ ...s, guest_email: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
               </label>
-              <label className="block space-y-2 text-sm text-slate-300">
+              <label className="block space-y-2 text-sm text-neutral-300">
                 Date of birth
-                <input required type="date" value={form.guest_dob} onChange={(e) => setForm((s) => ({ ...s, guest_dob: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none" />
+                <input required type="date" value={form.guest_dob} onChange={(e) => setForm((s) => ({ ...s, guest_dob: e.target.value }))} className="w-full rounded-2xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-white outline-none" />
               </label>
-              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-300">
+              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-neutral-950/40 px-4 py-3 text-sm text-neutral-300">
                 <input
                   required
                   type="checkbox"
                   checked={form.compliance_acknowledged}
                   onChange={(e) => setForm((s) => ({ ...s, compliance_acknowledged: e.target.checked }))}
-                  className="mt-1 size-4 accent-cyan-300"
+                  className="mt-1 size-4 accent-gold-300"
                 />
                 <span>I agree to present a valid photo ID and a major credit card matching my name for a security deposit upon check-in at the resort.</span>
               </label>
 
               <div className="flex items-center justify-between gap-4 pt-2">
-                <button type="button" onClick={() => setStep(3)} className="text-sm text-slate-300 hover:text-white">Back</button>
-                <button type="submit" disabled={!selected || loading} className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200 disabled:opacity-60">
+                <button type="button" onClick={() => setStep(3)} className="text-sm text-neutral-300 hover:text-white">Back</button>
+                <button type="submit" disabled={!selected || loading} className="rounded-full bg-gold-300 px-6 py-3 font-medium text-neutral-950 transition hover:bg-gold-200 disabled:opacity-60">
                   {loading ? "Creating payment" : "Confirm & pay"}
                 </button>
               </div>
             </form>
 
-            <aside className="space-y-6 rounded-[1.75rem] border border-white/10 bg-slate-950/50 p-6">
+            <aside className="space-y-6 rounded-[1.75rem] border border-white/10 bg-neutral-950/50 p-6">
               <div>
-                <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Review</p>
+                <p className="text-sm uppercase tracking-[0.35em] text-gold-200">Review</p>
                 <h2 className="mt-3 text-2xl font-semibold">Due now</h2>
               </div>
               {selected ? (
                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <div className="flex items-center justify-between text-sm text-slate-300">
+                  <div className="flex items-center justify-between text-sm text-neutral-300">
                     <span>Resort</span>
                     <span className="text-right">{selected.resort_name}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-slate-300">
+                  <div className="flex items-center justify-between text-sm text-neutral-300">
                     <span>Room</span>
                     <span>{selected.room_type_name}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-slate-300">
+                  <div className="flex items-center justify-between text-sm text-neutral-300">
                     <span>Package</span>
                     <span className="text-right">{selected.package_name}</span>
                   </div>
                   {carTotal ? (
-                    <div className="flex items-center justify-between text-sm text-slate-300">
+                    <div className="flex items-center justify-between text-sm text-neutral-300">
                       <span>Car add-on</span>
                       <span className="text-right">{formatCurrency(carTotal)}</span>
                     </div>
                   ) : null}
                   {conciergeTotal ? (
-                    <div className="flex items-center justify-between text-sm text-slate-300">
+                    <div className="flex items-center justify-between text-sm text-neutral-300">
                       <span>Concierge add-ons</span>
                       <span className="text-right">{formatCurrency(conciergeTotal)}</span>
                     </div>
                   ) : null}
                   <div className="border-t border-white/10 pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-300">Due now</span>
+                      <span className="text-neutral-300">Due now</span>
                       <span className="text-2xl font-semibold">{formatCurrency(pricing.dueNow)}</span>
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-sm text-slate-300">
+                    <div className="mt-2 flex items-center justify-between text-sm text-neutral-300">
                       <span>Total trip</span>
                       <span className="text-right">{formatCurrency(pricing.total)}</span>
                     </div>
-                    <p className="mt-3 text-sm text-slate-400">
+                    <p className="mt-3 text-sm text-neutral-400">
                       Payment confirmation is issued only after Stripe webhook verification.
                     </p>
                   </div>

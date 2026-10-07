@@ -34,24 +34,24 @@ export default function Home() {
 
   return (
     <div className="space-y-16">
-      <section className="grid gap-8 overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(103,232,249,0.22),_transparent_38%),linear-gradient(135deg,_rgba(15,23,42,1),_rgba(2,6,23,0.92))] p-8 shadow-2xl shadow-cyan-950/20 md:grid-cols-[1.2fr_0.8fr] md:p-12">
+      <section className="grid gap-8 overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.16),_transparent_38%),linear-gradient(135deg,_rgba(20,20,22,1),_rgba(0,0,0,0.94))] p-8 shadow-2xl shadow-gold-950/20 md:grid-cols-[1.2fr_0.8fr] md:p-12">
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <img
               src="/xp-ocean-logo.png"
               alt="XP Ocean Luxe"
-              className="h-20 w-20 rounded-full border border-amber-300/20 bg-black/40 object-cover p-1 shadow-lg shadow-amber-500/10"
+              className="h-20 w-20 rounded-full border border-gold-300/20 bg-black/40 object-cover p-1 shadow-lg shadow-gold-500/10"
             />
-            <p className="text-sm uppercase tracking-[0.4em] text-amber-200">Hosted by XP Ocean Luxe</p>
+            <p className="text-sm uppercase tracking-[0.4em] text-gold-200">Hosted by XP Ocean Luxe</p>
           </div>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
             Curated Westgate resort stays + Tesla rentals + VIP concierge, booked through Ocean Luxe.
           </h1>
-          <p className="max-w-2xl text-lg text-slate-300">
+          <p className="max-w-2xl text-lg text-neutral-300">
             Pick your destination, lock in dates, and tailor your trip with Orlando-only Tesla delivery and concierge handling. Transparent pricing, verified inventory, and a clean checkout.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link to="/destinations" className="rounded-full bg-cyan-300 px-6 py-3 font-medium text-slate-950 transition hover:bg-cyan-200">
+            <Link to="/destinations" className="rounded-full bg-gold-300 px-6 py-3 font-medium text-neutral-950 transition hover:bg-gold-200">
               Browse destinations
             </Link>
             <Link to="/book" className="rounded-full border border-white/15 px-6 py-3 font-medium text-white transition hover:bg-white/8">
@@ -63,10 +63,10 @@ export default function Home() {
           </div>
         </div>
         <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-          <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Why guests convert</p>
+          <p className="text-sm uppercase tracking-[0.35em] text-gold-200">Why guests convert</p>
           <div className="mt-6 space-y-4">
             {trustHighlights.map((highlight) => (
-              <div key={highlight} className="rounded-2xl border border-white/10 bg-slate-950/30 p-4 text-slate-200">
+              <div key={highlight} className="rounded-2xl border border-white/10 bg-neutral-950/30 p-4 text-neutral-200">
                 {highlight}
               </div>
             ))}
@@ -77,13 +77,13 @@ export default function Home() {
       <section className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Featured</p>
+            <p className="text-sm uppercase tracking-[0.35em] text-gold-200">Featured</p>
             <h2 className="mt-3 text-3xl font-semibold md:text-4xl">Destinations that book fast</h2>
-            <p className="mt-3 max-w-3xl text-slate-300">
+            <p className="mt-3 max-w-3xl text-neutral-300">
               Inventory is limited and curated. Start with these flagship options and expand the trip with add-ons when Orlando is selected.
             </p>
           </div>
-          <Link to="/destinations" className="text-sm text-cyan-200 hover:text-cyan-100">
+          <Link to="/destinations" className="text-sm text-gold-200 hover:text-gold-100">
             Browse all destinations →
           </Link>
         </div>
@@ -95,19 +95,19 @@ export default function Home() {
                 {resort.hero_image_url ? (
                   <img src={resort.hero_image_url} alt={resort.name} className="h-52 w-full object-cover" />
                 ) : (
-                  <div className="h-52 w-full bg-slate-900/50" />
+                  <div className="h-52 w-full bg-neutral-900/50" />
                 )}
                 <div className="space-y-4 p-6">
                   <div>
                     <p className="text-xs tracking-[0.28em] text-white/55">{resort.region}</p>
                     <h3 className="mt-2 text-2xl font-semibold">{resort.name}</h3>
-                    <p className="mt-2 text-sm text-slate-300">
+                    <p className="mt-2 text-sm text-neutral-300">
                       {resort.city}{resort.state ? `, ${resort.state}` : ""} ·{" "}
                       {resort.min_nightly_rate ? `From $${Number(resort.min_nightly_rate).toFixed(0)}/night` : "Pricing set in admin"}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-3">
-                    <Link to={`/resort/${resort.slug}`} className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-cyan-200">
+                    <Link to={`/resort/${resort.slug}`} className="rounded-full bg-gold-300 px-5 py-3 text-sm font-medium text-neutral-950 transition hover:bg-gold-200">
                       View resort
                     </Link>
                     <Link to={`/book?resort=${encodeURIComponent(resort.slug)}`} className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white/90 hover:bg-white/10">
@@ -119,7 +119,7 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 text-slate-300">
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 text-neutral-300">
             Featured destinations load once inventory is published.
           </div>
         )}
@@ -133,7 +133,7 @@ export default function Home() {
         ].map((item) => (
           <article key={item.title} className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
             <h2 className="text-xl font-semibold">{item.title}</h2>
-            <p className="mt-3 text-slate-300">{item.body}</p>
+            <p className="mt-3 text-neutral-300">{item.body}</p>
           </article>
         ))}
       </section>
